@@ -15,8 +15,6 @@
       virtual void pinMode(int pin, int mode);
       virtual int digitalRead(int pin);
       virtual void digitalWrite(int pin, int value);
-
-      bool lateInitError = false;
     private:
   };
 

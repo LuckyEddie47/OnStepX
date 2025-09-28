@@ -24,12 +24,8 @@
 
 // New symbol for the default I2C port -------------------------------------------------------------
 #include <Wire.h>
-#ifndef HAL_WIRE
-  #define HAL_WIRE Wire
-#endif
-#ifndef HAL_WIRE_CLOCK
-  #define HAL_WIRE_CLOCK 100000
-#endif
+#define HAL_WIRE Wire
+#define HAL_WIRE_CLOCK 100000
 
 // Non-volatile storage ----------------------------------------------------------------------------
 #if NV_DRIVER == NV_DEFAULT

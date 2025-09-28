@@ -2,4 +2,4 @@
 // servo motor feedback
 #pragma once
 
-#include "DualPid/DualPid.h"
+#include "Pid/Pid.h"

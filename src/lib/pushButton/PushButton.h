@@ -53,13 +53,12 @@ class Button {
     int pin;
     int state = HIGH;
     int lastStableState = HIGH;
-    int analogCompareValue;
+    int threshold;
     int hysteresis;
     unsigned long debounceMs = 0;
     unsigned long stableStartMs = 0;
     unsigned long stableMs = 0;
-    bool isAnalogThreshold = false;
-    bool isAnalogValue = false;
+    bool isAnalog = false;
     bool pressed = false;
     bool doublePressed = false;
     double avgPulseDuration = 2000.0;

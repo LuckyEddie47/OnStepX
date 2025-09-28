@@ -5,6 +5,8 @@
 
 #if defined(GPIO_DEVICE) && GPIO_DEVICE == SSR74HC595
 
+#include "../tasks/OnTask.h"
+
 #if !defined(GPIO_SSR74HC595_LATCH_PIN) || GPIO_SSR74HC595_LATCH_PIN == OFF
   #error "GPIO device SSR74HC595 GPIO_SSR74HC595_LATCH_PIN must be present and not OFF."
 #endif

@@ -7,7 +7,7 @@
 #define OPERATIONAL_MODE OFF
 #endif
 
-#if OPERATIONAL_MODE >= ETHERNET_FIRST && OPERATIONAL_MODE <= ETHERNET_LAST
+#if OPERATIONAL_MODE == ETHERNET_W5100 || OPERATIONAL_MODE == ETHERNET_W5500
 
 #include "EthernetManager.defaults.h"
 
@@ -17,14 +17,10 @@
   #endif
   #include <Ethernet2.h>     // https://github.com/adafruit/Ethernet2
 #else
-  #if OPERATIONAL_MODE == ETHERNET_TEENSY41
-    #include <NativeEthernet.h>      // built-in library or my https://github.com/hjd1964/Ethernet for ESP32 and ASCOM Alpaca support
-  #else
-    #include <Ethernet.h>      // built-in library or my https://github.com/hjd1964/Ethernet for ESP32 and ASCOM Alpaca support
-    #if MDNS_SERVER == ON
-      #include <EthernetUdp.h> // built-in library
-      #include <ArduinoMDNS.h> // https://www.arduino.cc/reference/en/libraries/arduinomdns/
-    #endif
+  #include <Ethernet.h>      // built-in library or my https://github.com/hjd1964/Ethernet for ESP32 and ASCOM Alpaca support
+  #if MDNS_SERVER == ON
+    #include <EthernetUdp.h> // built-in library
+    #include <ArduinoMDNS.h> // https://www.arduino.cc/reference/en/libraries/arduinomdns/
   #endif
 #endif
 

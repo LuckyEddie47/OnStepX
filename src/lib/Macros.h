@@ -34,10 +34,10 @@
 
 #define _allowed_fqdn "0123456789abcdefghijklmnopqrstuvwxyz"
 // convert to lower case and strip away characters that aren't allowed in an hostname
-#define strtohostname(source) for (int i = 0; source[i]; i++) { source[i] = tolower(source[i]); if (!strchr(_allowed_fqdn "-", source[i])) { if (i < (int)(strlen(source) - 1)) { memmove(&source[i], &source[i + 1], strlen(&source[i])); i--; } else source[i] = 0;; } }
+#define strtohostname(source) for (int i = 0; source[i]; i++) { source[i] = tolower(source[i]); if (!strchr(_allowed_fqdn "-", source[i])) { if (i < (int)(strlen(source) - 1)) { strcpy(&source[i], &source[i + 1]); i--; } else source[i] = 0;; } }
 
 // convert to lower case and strip away characters that aren't allowed in an hostname (and '-')
-#define strtohostname2(source) for (int i = 0; source[i]; i++) { source[i] = tolower(source[i]); if (!strchr(_allowed_fqdn, source[i])) { if (i < (int)(strlen(source) - 1)) { memmove(&source[i], &source[i + 1], strlen(&source[i])); i--; } else source[i] = 0;; } }
+#define strtohostname2(source) for (int i = 0; source[i]; i++) { source[i] = tolower(source[i]); if (!strchr(_allowed_fqdn, source[i])) { if (i < (int)(strlen(source) - 1)) { strcpy(&source[i], &source[i + 1]); i--; } else source[i] = 0;; } }
 
 // embeds a string in a macro
 #define STR_HELPER(x) #x
@@ -61,7 +61,6 @@
 // sense
 #define THLD(v)                     ((v)<<1)  // 10 bit analog threshold, bits 1 through 10
 #define HYST(v)                     ((v)<<11) // 10 bit hysteresis, bits 11 through 20
-#define ANLG(v)                     ((v)<<21) // 10 bit analog value, bits 21 through 30
 #ifndef INPUT_PULLDOWN
   #define INPUT_PULLDOWN INPUT
 #endif

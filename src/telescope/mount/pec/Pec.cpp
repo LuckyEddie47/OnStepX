@@ -58,7 +58,7 @@
         if (buffer == NULL) {
           bufferSize = 0;
           initError.value = true;
-          DLF("WRN: Pec::init(), bufferSize exceeds available RAM - PEC disabled");
+          VLF("WRN: Pec::init(), bufferSize exceeds available RAM - PEC disabled");
         } else {
           VF("MSG: Mount, PEC allocated buffer "); V(bufferSize * (long)sizeof(*buffer)); VLF(" bytes");
 

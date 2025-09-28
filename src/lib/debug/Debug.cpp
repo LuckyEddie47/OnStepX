@@ -33,20 +33,16 @@
       static int handle = tasks.getFirstHandle();
       if (!handle) {
         AAA /= count; AXA /= count; RAA /= count; RXA /= count;
-        aau = scale_unit(&AAA);
-        axu = scale_unit(&AXA);
-        rtu = scale_unit(&RTT);
-        rau = scale_unit(&RAA);
-        rxu = scale_unit(&RXA);
+        aau = scale_unit(&AAA); axu = scale_unit(&AXA); rtu = scale_unit(&RTT); rau = scale_unit(&RAA); rxu = scale_unit(&RXA);
     
         sprintf(s, "                     ----------- ------------        ----------   --------   ----------");
         SERIAL_DEBUG.print(s); Y;
         SERIAL_DEBUG.println(); Y;
         SERIAL_DEBUG.print("\x1b[K");
     
-        sprintf(s, "                    avgd %5ld%cs  avgd %4ld%cs   totalled %4ld%cs avgd %4ld%cs avgd %4ld%cs", 
+        sprintf(s, "                    avgd %5ld%cs  avgd %4ld%cs    totaled %4ld%cs avgd %4ld%cs avgd %4ld%cs", 
         lround(AAA), aau, lround(AXA), axu, lround(RTT), rtu, lround(RAA), rau, lround(RXA), rxu); Y;
-
+      
         SERIAL_DEBUG.print(s); Y;
         SERIAL_DEBUG.println(); Y;
         SERIAL_DEBUG.print("\x1b[K");
@@ -65,8 +61,6 @@
         SERIAL_DEBUG.print("\x1b[K");
         SERIAL_DEBUG.println();
         SERIAL_DEBUG.print("\x1b[K");
-
-        AAA = 0; AXA = 0; RTT = 0; RAA = 0; RXA = 0;
       }
     
       char *name = tasks.getNameStr(handle);
@@ -75,26 +69,26 @@
         char priority = tasks.getPriority(handle) + '0';
 
         double AA = tasks.getArrivalAvg(handle); Y;
-        AAA += AA;
         aau = scale_unit(&AA);
+        AAA += AA;
 
         double AX = tasks.getArrivalMax(handle); Y;
-        AXA += AX;
         axu = scale_unit(&AX);
+        AXA += AX;
 
         double RT = tasks.getRuntimeTotal(handle); Y;
-        RTT += RT;
         rtu = scale_unit(&RT);
+        RTT += RT;
 
         double RTcount = tasks.getRuntimeTotalCount(handle); Y;
         double RA;
         if (RTcount == 0) RA = 0; else RA = RT/RTcount; 
-        RAA += RA;
         rau = scale_unit(&RA);
+        RAA += RA;
 
         double RX = tasks.getRuntimeMax(handle); Y;
-        RXA += RX;
         rxu = scale_unit(&RX);
+        RXA += RX;
 
         count++;
         

@@ -11,6 +11,7 @@
   #include <TimeLib.h> // https://github.com/PaulStoffregen/Time/archive/master.zip
 #endif
 
+#include <Wire.h>
 #include <RtcDS3231.h> // https://github.com/Makuna/Rtc/archive/master.zip
 RtcDS3231<TwoWire> rtcDS3231(HAL_WIRE);
 
@@ -18,13 +19,17 @@ RtcDS3231<TwoWire> rtcDS3231(HAL_WIRE);
 
 bool TlsDs3231::init() {
   HAL_WIRE.begin();
-  HAL_WIRE_SET_CLOCK();
+  #ifdef HAL_WIRE_CLOCK
+    HAL_WIRE.setClock(HAL_WIRE_CLOCK);
+  #endif
 
   HAL_WIRE.beginTransmission(0x68);
   bool error = HAL_WIRE.endTransmission() != 0;
   if (!error) {
     rtcDS3231.Begin();
-    HAL_WIRE_SET_CLOCK();
+    #ifdef HAL_WIRE_CLOCK
+      HAL_WIRE.setClock(HAL_WIRE_CLOCK);
+    #endif
 
     if (!rtcDS3231.GetIsRunning()) rtcDS3231.SetIsRunning(true);
 
@@ -45,7 +50,9 @@ bool TlsDs3231::init() {
   #ifdef HAL_WIRE_RESET_AFTER_CONNECT
     HAL_WIRE.end();
     HAL_WIRE.begin();
-    HAL_WIRE_SET_CLOCK();
+    #ifdef HAL_WIRE_CLOCK
+      HAL_WIRE.setClock(HAL_WIRE_CLOCK);
+    #endif
   #endif
   return ready;
 }

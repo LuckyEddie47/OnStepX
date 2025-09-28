@@ -67,7 +67,7 @@ bool Convert::tzToDouble(double *value, char *hm) {
   if (m != NULL) {
     m[0] = 0;
     m++;
-    if (strlen(m) != 1 && strlen(m) != 2) return false;
+    if (strlen(m) != 2) return false;
     if (!atoi2(m, &minute, false)) return false;
     // only these exact minutes are allowed for time zones
     if (minute != 45 && minute != 30 && minute != 0) return false;
@@ -287,25 +287,6 @@ bool Convert::atof2(char *a, double *d, bool sign) {
   }
   *d = atof(a);
   return true;
-}
-
-void Convert::stripNumericStr(char* s, bool trailingDecimal) {
-  int pp = -1;
-  for (unsigned int p = 0; p < strlen(s); p++) if (s[p] == '.') { pp = p; break; }
-  if (pp != -1) {
-    int p;
-    for (p = strlen(s) - 1; p >= pp; p--) {
-      if (trailingDecimal && p - 1 > 0 && s[p] == '0' && s[p - 1] == '.') break;
-      if (s[p] != '0') break;
-      s[p] = 0;
-    }
-    if (s[p] == '.') s[p] = 0;
-  }
-  if (s[0] == '-' || s[0] == '+') {
-    while (s[1] == '0' && s[2] != '.' && strlen(s) > 2) memmove(&s[1], &s[2], strlen(s) - 1);
-  } else {
-    while (s[0] == '0' && s[1] != '.' && strlen(s) > 1) memmove(&s[0], &s[1], strlen(s));
-  }
 }
 
 Convert convert;

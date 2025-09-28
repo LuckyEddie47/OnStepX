@@ -5,36 +5,6 @@
 
 #ifdef SERVO_MOTOR_PRESENT
 
-#include "../../Drivers.h"
-
-#ifndef AXIS1_SERVO_FEEDBACK
-  #define AXIS1_SERVO_FEEDBACK DUAL_PID
-#endif
-#ifndef AXIS2_SERVO_FEEDBACK
-  #define AXIS2_SERVO_FEEDBACK DUAL_PID
-#endif
-#ifndef AXIS3_SERVO_FEEDBACK
-  #define AXIS3_SERVO_FEEDBACK DUAL_PID
-#endif
-#ifndef AXIS4_SERVO_FEEDBACK
-  #define AXIS4_SERVO_FEEDBACK DUAL_PID
-#endif
-#ifndef AXIS5_SERVO_FEEDBACK
-  #define AXIS5_SERVO_FEEDBACK DUAL_PID
-#endif
-#ifndef AXIS6_SERVO_FEEDBACK
-  #define AXIS6_SERVO_FEEDBACK DUAL_PID
-#endif
-#ifndef AXIS7_SERVO_FEEDBACK
-  #define AXIS7_SERVO_FEEDBACK DUAL_PID
-#endif
-#ifndef AXIS8_SERVO_FEEDBACK
-  #define AXIS8_SERVO_FEEDBACK DUAL_PID
-#endif
-#ifndef AXIS9_SERVO_FEEDBACK
-  #define AXIS9_SERVO_FEEDBACK DUAL_PID
-#endif
-
 typedef struct ServoControl {
   float in;
   float out;
@@ -44,17 +14,26 @@ typedef struct ServoControl {
 
 class Feedback {
   public:
-    // initialize feedback control and parameters
-    virtual void init(uint8_t axisNumber, ServoControl *control);
+    // initialize feedback control and parameters, controlRange is +/- 255 default
+    virtual void init(uint8_t axisNumber, ServoControl *control, float controlRange = 255);
 
     // reset feedback control and parameters
     virtual void reset();
 
-    // returns the number of axis parameters
-    virtual uint8_t getParameterCount() { return 0; }
+    // get driver type code
+    virtual char getParameterTypeCode();
 
-    // returns the specified axis parameter
-    virtual AxisParameter* getParameter(uint8_t number) { return &invalid; }
+    // get default feedback parameters
+    virtual void getDefaultParameters(float *param1, float *param2, float *param3, float *param4, float *param5, float *param6);
+
+    // set default feedback parameters
+    virtual void setDefaultParameters(float param1, float param2, float param3, float param4, float param5, float param6);
+
+    // set feedback parameters
+    virtual void setParameters(float param1, float param2, float param3, float param4, float param5, float param6);
+
+    // validate driver parameters
+    virtual bool validateParameters(float param1, float param2, float param3, float param4, float param5, float param6);
 
     // select feedback PID param set for tracking
     virtual void selectTrackingParameters();
@@ -68,23 +47,15 @@ class Feedback {
     // set feedback control direction
     virtual void setControlDirection(int8_t state);
 
-    // set feedback control range controlRange, +/- the maximum encoder counts/s
-    virtual void setControlRange(float controlRange);
-
     virtual void poll();
 
-    bool manuallySwitchParameters = true;
-
-    // true if the feedback instance is ready to use
-    bool ready = false;
+    bool autoScaleParameters = true;
 
   protected:
-    uint8_t axisNumber = 0;
-
+    float default_param1 = 0, default_param2 = 0, default_param3 = 0, default_param4 = 0, default_param5 = 0, default_param6 = 0;
+    float param1 = 0, param2 = 0, param3 = 0, param4 = 0, param5 = 0, param6 = 0;
     ServoControl *control;
-
-    // runtime adjustable settings
-    AxisParameter invalid = {NAN, NAN, NAN, NAN, NAN, AXP_INVALID, ""};
+    uint8_t axisNumber = 0;
 };
 
 #endif

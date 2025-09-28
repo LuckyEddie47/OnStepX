@@ -9,6 +9,8 @@
   #define GPIO_MCP23008_I2C_ADDRESS 0x20
 #endif
 
+#include "../tasks/OnTask.h"
+
 // needs: https://github.com/adafruit/Adafruit-MCP23017-Arduino-Library and https://github.com/adafruit/Adafruit_BusIO
 #include "Adafruit_MCP23X08.h"
 Adafruit_MCP23X08 mcp;
@@ -22,7 +24,9 @@ bool GpioMcp23008::init() {
     found = true;
     for (int i = 0; i < 8; i++) { mcp.pinMode(i, INPUT); }
   } else { found = false; DF("WRN: Gpio.init(), MCP23008 (I2C 0x"); if (DEBUG != OFF) SERIAL_DEBUG.print(GPIO_MCP23008_I2C_ADDRESS, HEX); DLF(") not found"); }
-  HAL_WIRE_SET_CLOCK();
+  #ifdef HAL_WIRE_CLOCK
+    HAL_WIRE.setClock(HAL_WIRE_CLOCK);
+  #endif
   
   return found;
 }

@@ -18,8 +18,8 @@
 
 class QuadratureEsp32 : public Encoder {
   public:
-    QuadratureEsp32(int16_t axis, int16_t APin, int16_t BPin);
-    bool init();
+    QuadratureEsp32(int16_t APin, int16_t BPin, int16_t axis);
+    void init();
 
     int32_t read();
     void write(int32_t count);
@@ -27,6 +27,8 @@ class QuadratureEsp32 : public Encoder {
     ESP32Encoder *ab;
 
   private:
+    int16_t axis;
+
     int16_t APin = OFF;
     int16_t BPin = OFF;
 };

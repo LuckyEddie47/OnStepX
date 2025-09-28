@@ -36,8 +36,8 @@ typedef struct AccessPointSettings {
 } AccessPointSettings;
 
 typedef struct StationSettings {
-  char ssid[33];
-  char pwd[64];
+  char ssid[32];
+  char pwd[32];
   bool dhcpEnabled;
   uint8_t ip[4];
   uint8_t gw[4];
@@ -48,9 +48,9 @@ typedef struct StationSettings {
 
 #ifndef WifiStationCount
   // number of wifi stations supported, between 1 and 6
-  #define WifiStationCount 1
+  #define WifiStationCount 3
 #endif
-#define WifiSettingsSize (112 + WifiStationCount*146)
+#define WifiSettingsSize (112 + WifiStationCount*113)
 typedef struct WifiSettings {
   char masterPassword[32];
 

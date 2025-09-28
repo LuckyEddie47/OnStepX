@@ -34,9 +34,7 @@
 
 // New symbol for the default I2C port ---------------------------------------------------------------
 #include <Wire.h>
-#ifndef HAL_WIRE
-  #define HAL_WIRE Wire
-#endif
+#define HAL_WIRE Wire
 #ifndef HAL_WIRE_CLOCK
   #define HAL_WIRE_CLOCK 100000
 #endif
@@ -45,7 +43,7 @@
 #undef E2END
 #if NV_DRIVER == NV_DEFAULT
   #undef NV_DRIVER
-  #define NV_DRIVER NV_24256
+  #define NV_DRIVER NV_AT24C32
 #endif
 
 //--------------------------------------------------------------------------------------------------
@@ -54,15 +52,17 @@
 
 //--------------------------------------------------------------------------------------------------
 // General purpose initialize for HAL
+
 #define HAL_INIT() { \
   analogWriteResolution((int)log2(ANALOG_WRITE_RANGE + 1)); \
+  HAL_WIRE.setSDA(PB9); \
+  HAL_WIRE.setSCL(PB8); \
+  HAL_WIRE.setClock(HAL_WIRE_CLOCK); \
+  HAL_WIRE.begin(); \
 }
 
 //---------------------------------------------------------------------------------------------------
 // Misc. includes to support this processor's operation
-
-// always bring in the software serial library early as strange things happen otherwise
-#include <SoftwareSerial.h>
 
 // MCU reset
 #define HAL_RESET() NVIC_SystemReset()

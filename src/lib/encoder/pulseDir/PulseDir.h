@@ -9,20 +9,14 @@
 
 class PulseDir : public Encoder {
   public:
-    PulseDir(int16_t axis, int16_t pulsePin, int16_t dirPin);
-    bool init();
+    PulseDir(int16_t pulsePin, int16_t dirPin, int16_t axis);
+    void init();
 
     int32_t read();
     void write(int32_t count);
 
-    void pulse(const int16_t dirPin);
-
   private:
-    int16_t axis_index;
-
-    int16_t PulsePin
-    volatile int16_t DirPin;
-    volatile int32_t pulseDirCount;
+    int16_t pulsePin, dirPin;
 };
 
 #endif

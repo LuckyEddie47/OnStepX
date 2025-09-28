@@ -84,10 +84,6 @@
   #define MCU_STR "STM32F446"
   #include "stm32/STM32F446.h"
 
-#elif defined(STM32H723xx)
-  #define MCU_STR "STM32H723"
-  #include "stm32/STM32H7xx.h"
-
 #elif defined(STM32H743xx)
   // WeAct Studio board with STM32H743
   #define MCU_STR "STM32H743"
@@ -133,16 +129,6 @@
   #define MCU_STR "TeensyMicroMod"
   #include "teensy/Teensy4.1.h"
 
-#elif defined(ARDUINO_ARCH_RP2040)
-  // Raspberry pi pico
-  #define MCU_STR "Raspberry Pi Pico"
-  #include "mbed/Rpi2040.h"
-
-#elif defined(ARDUINO_ARCH_RP2350)
-  // Raspberry pi pico2
-  #define MCU_STR "Raspberry Pi Pico2"
-  #include "mbed/Rpi2350.h"
-
 #else
   // Generic
   #warning "Unknown Platform! If this is a new platform, it would probably do best with a new HAL designed for it."
@@ -175,10 +161,4 @@
 
 #ifndef CAT_ATTR
   #define CAT_ATTR
-#endif
-
-#if defined(HAL_WIRE_CLOCK)
-  #define HAL_WIRE_SET_CLOCK() HAL_WIRE.setClock(HAL_WIRE_CLOCK)
-#else
-  #define HAL_WIRE_SET_CLOCK()
 #endif

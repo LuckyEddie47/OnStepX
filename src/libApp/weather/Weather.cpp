@@ -72,7 +72,9 @@ bool Weather::init() {
       #ifdef HAL_WIRE_RESET_AFTER_CONNECT
         HAL_WIRE.end();
         HAL_WIRE.begin();
-        HAL_WIRE_SET_CLOCK();
+        #ifdef HAL_WIRE_CLOCK
+          HAL_WIRE.setClock(HAL_WIRE_CLOCK);
+        #endif
       #endif
     #endif
 
@@ -140,11 +142,11 @@ void Weather::poll() {
       } else {
         if (nanCount < 15) {
           nanCount++;
-          DLF("WRN: Weather.poll(), ambient temp. invalid");
+          VLF("WRN: Weather.poll(), ambient temp. invalid");
         } else {
           averageTemperature = NAN;
           firstSample = true;
-          DLF("WRN: Weather.poll(), ambient temp. reset");
+          VLF("WRN: Weather.poll(), ambient temp. reset");
         }
       }
     }

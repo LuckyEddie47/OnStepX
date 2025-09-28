@@ -9,8 +9,6 @@
 
 #if OPERATIONAL_MODE == WIFI
   #include <WiFiUdp.h>
-#elif OPERATIONAL_MODE == ETHERNET_TEENSY41
-  #include <NativeEthernetUdp.h>
 #else
   #include <EthernetUdp.h>
 #endif

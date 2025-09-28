@@ -7,7 +7,7 @@
 #define HOST_NAME                "Unknown"
 #endif
 
-// default WIFI disabled
+// first, you must have an Wifi or Ethernet device:  OFF or WIFI, ETHERNET_W5100, ETHERNET_W5500
 #ifndef OPERATIONAL_MODE
 #define OPERATIONAL_MODE              OFF
 #endif

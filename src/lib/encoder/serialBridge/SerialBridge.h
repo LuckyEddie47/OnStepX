@@ -19,7 +19,9 @@ class SerialBridge : public Encoder {
     bool errorThresholdExceeded() { return errorDetected; }
 
   private:
-    int32_t getCount();
+    int32_t raw();
+
+    int32_t offset = 0;
 
     char channel[2] = "0";
     unsigned long lastReadMillis = 0;

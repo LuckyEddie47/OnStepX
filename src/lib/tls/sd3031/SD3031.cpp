@@ -11,16 +11,21 @@
   #include <TimeLib.h> // https://github.com/PaulStoffregen/Time/archive/master.zip
 #endif
 
+#include <Wire.h>
 #include <DFRobot_SD3031.h> // https://github.com/cdjq/DFRobot_SD3031
 DFRobot_SD3031 rtcSD3031(&HAL_WIRE);
 
 bool TlsSd3031::init() {
   HAL_WIRE.begin();
-  HAL_WIRE_SET_CLOCK();
+  #ifdef HAL_WIRE_CLOCK
+    HAL_WIRE.setClock(HAL_WIRE_CLOCK);
+  #endif
 
   bool error = !rtcSD3031.begin();
   if (!error) {
-    HAL_WIRE_SET_CLOCK();
+    #ifdef HAL_WIRE_CLOCK
+      HAL_WIRE.setClock(HAL_WIRE_CLOCK);
+    #endif
 
     rtcSD3031.setHourSystem(rtcSD3031.e24hours);
 
@@ -34,7 +39,9 @@ bool TlsSd3031::init() {
   #ifdef HAL_WIRE_RESET_AFTER_CONNECT
     HAL_WIRE.end();
     HAL_WIRE.begin();
-    HAL_WIRE_SET_CLOCK();
+    #ifdef HAL_WIRE_CLOCK
+      HAL_WIRE.setClock(HAL_WIRE_CLOCK);
+    #endif
   #endif
   return ready;
 }
