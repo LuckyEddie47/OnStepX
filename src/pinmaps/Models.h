@@ -83,6 +83,10 @@
   #define PINMAP_STR "MaxSTM v3"
   #include "Pins.MaxSTM.h"
 #endif
+#if PINMAP == OPB_ESP32
+  #define PINMAP_STR "OPB ESP32"
+  #include "Pins.OPB_ESP32.h"
+#endif
 #ifndef PINMAP_STR
   #define PINMAP_STR "Unknown"
 #endif

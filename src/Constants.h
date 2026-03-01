@@ -36,8 +36,9 @@
 
 #define JTWSTM                      20     // JTW Astronomy JTWSTM telescope mount controller Rev 2.1
 #define MANTICORE                   21     // JTW Astronomy MANTICORE telescope mount controller Rev 1.0
+#define OPB_ESP32                   22     // Open Power Box on ESP32
 
-#define PINMAP_LAST                 21
+#define PINMAP_LAST                 22
 
 // WEATHER sensors (temperature, pressure, and humidity)
 #define WEATHER_FIRST               1

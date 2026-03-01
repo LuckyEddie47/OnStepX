@@ -12,17 +12,17 @@
 
 // =================================================================================================================================
 
-#define PLUGIN1                       OFF //    OFF, Specify the class instance (same as plugin directory name) to enable.    Option
-//#include "plugin1/Name.h"               //         Specify the header file to include the class.
+#define PLUGIN1                      mqtt //    OFF, Specify the class instance (same as plugin directory name) to enable.    Option
+#include "mqtt/Mqtt.h"                    //         Specify the header file to include the class.
 // *** Comment out PLUGIN1 above AND uncomment the following two lines to enable the sample plugin ***
-//#define PLUGIN1                    sample //    OFF, Specify the class instance (same as plugin directory name) to enable.    Option
-//#include "sample/Sample.h"                //         Specify the header file to include the class.
+//#define PLUGIN1                  sample //    OFF, Specify the class instance (same as plugin directory name) to enable.    Option
+//#include "sample/Sample.h"              //         Specify the header file to include the class.
 
-#define PLUGIN1_COMMAND_PROCESSING    OFF //    OFF, Set to ON for plugins that allow command processing
+#define PLUGIN1_COMMAND_PROCESSING     ON //    OFF, Set to ON for plugins that allow command processing
 
-#define PLUGIN2                       OFF //    OFF, Specify the class instance (same as plugin directory name) to enable.    Option
-//#include "plugin2/Name.h"               //         Specify the header file to include the class.
-#define PLUGIN2_COMMAND_PROCESSING    OFF //    OFF, Set to ON for plugins that allow command processing
+#define PLUGIN2                       usb //    OFF, Specify the class instance (same as plugin directory name) to enable.    Option
+#include "usb/Usb.h"                      //         Specify the header file to include the class.
+#define PLUGIN2_COMMAND_PROCESSING     ON //    OFF, Set to ON for plugins that allow command processing
 
 #define PLUGIN3                       OFF //    OFF, Specify the class instance (same as plugin directory name) to enable.    Option
 //#include "plugin3/Name.h"               //         Specify the header file to include the class.
