@@ -2,7 +2,7 @@
  * Title       OnStepX
  * by          Howard Dutton
  *
- * Copyright (C) 2021-2024 Howard Dutton
+ * Copyright (C) 2021-2026 Howard Dutton
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,13 +43,14 @@
 // Firmware version ----------------------------------------------------------------------------------------------------------------
 #define FirmwareName                "On-Step"
 #define FirmwareVersionMajor        10
-#define FirmwareVersionMinor        25     // minor version 00 to 99
-#define FirmwareVersionPatch        "r"    // for example major.minor patch: 10.03c
+#define FirmwareVersionMinor        27     // minor version 00 to 99
+#define FirmwareVersionPatch        "m"    // for example major.minor patch: 10.03c
 #define FirmwareVersionConfig       6      // internal, for tracking configuration file changes
 
 #include "src/Common.h"
 #include "src/Validate.h"
 #include "src/lib/nv/Nv.h"
+#include "src/lib/analog/Analog.h"
 #include "src/lib/sense/Sense.h"
 #include "src/lib/tasks/OnTask.h"
 
@@ -95,9 +96,12 @@ void setup() {
   // start low level hardware
   VLF("MSG: System, HAL initialize");
   HAL_INIT();
+  WIRE_INIT();
+
+  analog.begin();
 
   if (!nv.init()) {
-    DLF("WRN: Setup, NV (EEPROM/FRAM/Flash/etc.) device not found!");
+    DLF("ERR: Setup, NV (EEPROM/FRAM/Flash/etc.) device not found!");
     nv.initError = true;
   }
   delay(2000);

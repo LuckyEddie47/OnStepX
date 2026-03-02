@@ -32,7 +32,9 @@
 
 // New symbol for the default I2C port ---------------------------------------------------------------
 #include <Wire.h>
-#define HAL_WIRE Wire
+#ifndef HAL_WIRE
+  #define HAL_WIRE Wire
+#endif
 #ifndef HAL_WIRE_CLOCK
   #define HAL_WIRE_CLOCK 100000
 #endif
@@ -51,7 +53,6 @@
 //--------------------------------------------------------------------------------------------------
 // General purpose initialize for HAL
 #define HAL_INIT() { \
-  analogWriteResolution((int)log2(ANALOG_WRITE_RANGE + 1)); \
 }
 
 //---------------------------------------------------------------------------------------------------
@@ -62,9 +63,3 @@
 
 // MCU reset
 #define HAL_RESET() NVIC_SystemReset()
-
-// a really short fixed delay (none needed)
-#define HAL_DELAY_25NS()
-
-// stand-in for delayNanoseconds()
-#define delayNanoseconds(ns) delayMicroseconds(ceilf(ns/1000.0F))

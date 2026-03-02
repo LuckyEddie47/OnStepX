@@ -39,7 +39,7 @@ IRAM_ATTR void clockTickWrapper() { fracLAST++; }
 
       JulianDate jd;
       VLF("MSG: Mount, getting date/time from GPS");
-      unsigned long syncTimeout = millis() + 1000;
+      unsigned long syncTimeout = millis() + 1000U;
       while (!site.tls->get(jd) && (long)(millis() - syncTimeout) < 0) { };
       if ((long)(millis() - syncTimeout) < 0) {
         site.dateIsReady = true;
@@ -56,9 +56,9 @@ IRAM_ATTR void clockTickWrapper() { fracLAST++; }
     } else
 
     if ((long)(millis() - site.updateTimeoutTime) > 0) {
-      VLF("WRN: Mount, GPS timed out stopping monitor task");
+      DLF("WRN: Mount, GPS timed out stopping monitor task");
       tasks.setDurationComplete(tasks.getHandleByName("gpsChk"));
-      VLF("WRN: TLS, GPS timed out stopping GPS polling task");
+      DLF("WRN: TLS, GPS timed out stopping GPS polling task");
       tasks.setDurationComplete(tasks.getHandleByName("gpsPoll"));
       initError.tls = true; 
     }
@@ -81,9 +81,9 @@ IRAM_ATTR void clockTickWrapper() { fracLAST++; }
     } else
 
     if ((long)(millis() - site.updateTimeoutTime) > 0) {
-      VLF("MSG: Mount, NTP timed out stopping monitor task");
+      DLF("MSG: Mount, NTP timed out stopping monitor task");
       tasks.setDurationComplete(tasks.getHandleByName("ntpChk"));
-      VLF("WRN: TLS, NTP timed out stopping monitor task");
+      DLF("WRN: TLS, NTP timed out stopping monitor task");
       tasks.setDurationComplete(tasks.getHandleByName("ntp"));
       initError.tls = true; 
     }
@@ -113,7 +113,7 @@ IRAM_ATTR void clockTickWrapper() { fracLAST++; }
     // DF("MSG: Site,"); D(syncc); DF("sub-micro delta="); D((long)pps.averageSubMicros - 16000000L); DF("us, pps="); D(p/1000L); DF("ms, time.sec="); D(s/1000L); DF("ms, delta="); D(delta/1000); DLF("ms");
 
     if (abs(deltaAvg) < 3000L) return;
-    pps.averageSubMicrosSkew = (-deltaAvg*HAL_MIN_PPS_SUB_MICRO)/2000L;
+    pps.averageSubMicrosSkew = (-deltaAvg*SITE_MIN_PPS_SUB_MICRO)/2000L;
     if (pps.averageSubMicrosSkew < -128) pps.averageSubMicrosSkew = -128; else
     if (pps.averageSubMicrosSkew > 128) pps.averageSubMicrosSkew = 128;
   }
@@ -161,12 +161,12 @@ void Site::init() {
         VLF("MSG: Mount, site get Date/Time from TLS");
       } else {
         #if TIME_LOCATION_SOURCE == GPS
-          updateTimeoutTime = millis() + GPS_TIMEOUT_MINUTES*60000UL;
+          updateTimeoutTime = millis() + GPS_TIMEOUT_MINUTES*60000U;
           VF("MSG: Site, start GPS check task (rate 5000ms priority 7)... ");
           if (tasks.add(5000, 0, true, 7, gpsCheck, "gpsChk")) { VLF("success"); } else { VLF("FAILED!"); }
         #endif
         #if TIME_LOCATION_SOURCE == NTP
-          updateTimeoutTime = millis() + NTP_TIMEOUT_SECONDS*1000UL;
+          updateTimeoutTime = millis() + NTP_TIMEOUT_SECONDS*1000U;
           VF("MSG: Site, start NTP check task (rate 5000ms priority 7)... ");
           if (tasks.add(5000, 0, true, 7, ntpCheck, "ntpChk")) { VLF("success"); } else { VLF("FAILED!"); }
         #endif
@@ -188,7 +188,7 @@ void Site::init() {
 
     if (initError.tls) {
       DLF("WRN: Site::init(), Warning TLS initialization failed");
-      VLF("WRN: Site::init(), fallback to last Date/Time from NV");
+      DLF("WRN: Site::init(), fallback to last Date/Time from NV");
       readJD();
     }
   #else

@@ -32,9 +32,14 @@ bool WifiManager::init() {
       WiFi.hostname(name);
     #endif
 
+    if (settings.accessPointEnabled == false && settings.stationEnabled == false) {
+      VF("MSG: WiFi, re-enabling access point mode to prevent lock-out!");
+      settings.accessPointEnabled = true;
+    }
+
   TryAgain:
     if (settings.accessPointEnabled && !settings.stationEnabled) {
-      VLF("MSG: WiFi, starting Soft AP");
+      VF("MSG: WiFi, starting Soft AP for SSID "); V(settings.ap.ssid); V(" PWD "); V(settings.ap.pwd); V(" CH "); VL(settings.ap.channel);
       WiFi.softAP(settings.ap.ssid, settings.ap.pwd, settings.ap.channel);
       #if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32C3)
         WiFi.setTxPower(WIFI_POWER_8_5dBm);
@@ -42,7 +47,7 @@ bool WifiManager::init() {
       WiFi.mode(WIFI_AP);
     } else
     if (!settings.accessPointEnabled && settings.stationEnabled) {
-      VLF("MSG: WiFi, starting Station");
+      VF("MSG: WiFi, starting Station for SSID "); V(sta->ssid); V(" PWD "); VL(sta->pwd);
       WiFi.begin(sta->ssid, sta->pwd);
       #if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32C3)
         WiFi.setTxPower(WIFI_POWER_8_5dBm);
@@ -50,9 +55,9 @@ bool WifiManager::init() {
       WiFi.mode(WIFI_STA);
     } else
     if (settings.accessPointEnabled && settings.stationEnabled) {
-      VLF("MSG: WiFi, starting Soft AP");
+      VF("MSG: WiFi, starting Soft AP for SSID "); V(settings.ap.ssid); V(" PWD "); V(settings.ap.pwd); V(" CH "); VL(settings.ap.channel);
       WiFi.softAP(settings.ap.ssid, settings.ap.pwd, settings.ap.channel);
-      VLF("MSG: WiFi, starting Station");
+      VF("MSG: WiFi, starting Station for SSID "); V(sta->ssid); V(" PWD "); VL(sta->pwd);
       WiFi.begin(sta->ssid, sta->pwd);
       #if defined(CONFIG_IDF_TARGET_ESP32S2) || defined(CONFIG_IDF_TARGET_ESP32C3)
         WiFi.setTxPower(WIFI_POWER_8_5dBm);
@@ -66,13 +71,15 @@ bool WifiManager::init() {
     if (settings.accessPointEnabled) WiFi.softAPConfig(ap_ip, ap_gw, ap_sn);
 
     // wait for connection
-    if (settings.stationEnabled) { for (int i = 0; i < 8; i++) if (WiFi.status() != WL_CONNECTED) delay(1000); else break; }
+    if (settings.stationEnabled) {
+      for (int i = 0; i < 8; i++) if (WiFi.status() != WL_CONNECTED) delay(1000); else break;
+    }
 
     if (settings.stationEnabled && WiFi.status() != WL_CONNECTED) {
 
       // if connection fails fall back to access-point mode
       if (settings.stationApFallback && !settings.accessPointEnabled) {
-        VLF("MSG: WiFi starting station failed");
+        VLF("MSG: WiFi, starting station failed");
         WiFi.disconnect();
         delay(3000);
         VLF("MSG: WiFi, switching to SoftAP mode");
@@ -84,20 +91,20 @@ bool WifiManager::init() {
       // no fallback but the AP is still enabled
       if (settings.accessPointEnabled) {
         active = true;
-        VLF("MSG: WiFi, AP initialized station failed");
+        VLF("MSG: WiFi, started AP but station failed");
       } else {
         // the station failed to connect and the AP isn't enabled
-        VLF("MSG: WiFi, initialization failed");
+        DLF("WRN: WiFi, starting station failed");
         WiFi.disconnect();
       }
     } else {
       active = true;
-      VLF("MSG: WiFi, initialized");
+      VLF("MSG: WiFi, started");
 
       #if MDNS_SERVER == ON && !defined(ESP8266)
         sstrcpy(name, MDNS_NAME, 32);
         strtohostname2(name);
-        if (MDNS.begin(name)) { VF("MSG: WiFi, mDNS started for "); VL(name); } else { VF("WRN: WiFi, mDNS start FAILED for "); VL(name); }
+        if (MDNS.begin(name)) { VF("MSG: WiFi, mDNS started for "); VL(name); } else { DF("WRN: WiFi, mDNS start FAILED for "); DL(name); }
       #endif
 
       if (staNameLookup && strlen(wifiManager.sta->host) > 0) {

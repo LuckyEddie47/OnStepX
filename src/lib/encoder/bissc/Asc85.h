@@ -8,11 +8,9 @@
   class LikaAsc85 : public Bissc {
     public:
       // initialize BiSS-C encoder
-      LikaAsc85(int16_t maPin, int16_t sloPin, int16_t axis);
+      LikaAsc85(int16_t axis, int16_t maPin, int16_t sloPin);
 
     private:
-      // read encoder position
-      bool readEnc(uint32_t &position);
 
       // BiSS-C 6-bit CRC of 27 bit data (25 position + 2 err/wrn)
       uint8_t crc6(uint64_t data);
