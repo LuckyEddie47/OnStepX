@@ -6,8 +6,6 @@
 
 #if defined(MOUNT_PRESENT)
 
-#include "../../../lib/nv/Nv.h"
-
 #include "../../Telescope.h"
 #include "../coordinates/Transform.h"
 
@@ -31,7 +29,7 @@ class Park {
   public:
     void init();
 
-    bool command(char *reply, char *command, char *parameter, bool *supressFrame, bool *numericReply, CommandError *commandError);
+    bool command(char *reply, char *command, char *parameter, bool *suppressFrame, bool *numericReply, CommandError *commandError);
 
     // sets a park position
     CommandError set();
@@ -49,12 +47,12 @@ class Park {
     CommandError restore(bool withTrackingOn);
 
     // resets park state, clears any errors but does not erase the park position
-    inline void reset() { state = PS_UNPARKED; nv.updateBytes(NV_MOUNT_PARK_BASE, &settings, sizeof(ParkSettings)); }
+    void reset();
 
     // check input pin to initiate park operation
     void signal();
 
-    ParkState state;
+    ParkState state = PS_UNPARKED;
 
     ParkSettings settings = {{0, 0, PIER_SIDE_NONE}, false, PS_UNPARKED, 0};
 
@@ -62,6 +60,8 @@ class Park {
     uint8_t parkSenseHandle = 0;
     uint8_t parkSignalHandle = 0;
     bool wasTracking = false;
+    
+    uint32_t nvKey;
 };
 
 extern Park park;

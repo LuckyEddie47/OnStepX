@@ -12,8 +12,7 @@
   #define SERIAL_A              Serial
 #endif
 
-#define I2C_SDA_PIN             21
-#define I2C_SCL_PIN             22
+// Uses default ESP32 I2C GPIO21 (SDA) and GPIO22 (SCL)
 
 // Use the following settings for the 4x TMC UART drivers
 #if defined(STEP_DIR_TMC_UART_PRESENT) || defined(SERVO_TMC2209_PRESENT)
@@ -30,7 +29,7 @@
     #ifndef SERIAL_TMC_RX
       #define SERIAL_TMC_RX     0                // Recieving data (GPIO0 unused except for flashing)
     #endif
-    #define SERIAL_TMC_TX       19               // Transmit data (MISO moved from Z-MIN)
+    #define SERIAL_TMC_TX       15               // Transmit data (Z-MIN)
     #define SPARE_RX_PIN        OFF              // Not supported in this case
   #endif
   // map the driver addresses so axis Axis1(0) is X, Axis2(1) is Y, Axis3(2) is Z, Axis4(3) is E0...

@@ -22,17 +22,13 @@ inline void gotoWrapper() { goTo.poll(); }
 #endif
 
 void Goto::init() {
-  // confirm the data structure size
-  if (GotoSettingsSize < sizeof(GotoSettings)) { nv.initError = true; DLF("ERR: Goto::init(), GotoSettingsSize error"); }
 
-  // write the default settings to NV
-  if (!nv.hasValidKey() || nv.isNull(NV_MOUNT_GOTO_BASE, sizeof(GotoSettings))) {
-    VLF("MSG: Mount, goto writing defaults to NV");
-    nv.writeBytes(NV_MOUNT_GOTO_BASE, &settings, sizeof(GotoSettings));
-  }
+  nvKey = nv().kv().computeKey("GOTO_SETTINGS");
+  if (!nv().kv().getOrInit(nvKey, settings)) { DLF("WRN: Nv, init failed for GOTO_SETTINGS"); }
 
-  // read the settings
-  nv.readBytes(NV_MOUNT_GOTO_BASE, &settings, sizeof(GotoSettings));
+  settings.meridianFlipAuto = constrain(settings.meridianFlipAuto, false, true);
+  settings.meridianFlipPause = constrain(settings.meridianFlipPause, false, true);
+  settings.preferredPierSide = constrain(settings.preferredPierSide, PSS_NONE, PSS_SAME_ONLY);
 
   // force defaults if needed
   #if MFLIP_PAUSE_HOME_MEMORY != ON
@@ -55,12 +51,17 @@ void Goto::init() {
     usPerStepBase = 1000000.0F/((axis1.getStepsPerMeasure()/RAD_DEG_RATIO)*1.0F);
     settings.usPerStepCurrent = usPerStepBase;
   #endif
+
+  settings.usPerStepCurrent = constrain(settings.usPerStepCurrent, usPerStepBase/2.0F, usPerStepBase*2.0F);
   if (usPerStepBase < usPerStepLowerLimit()) usPerStepBase = usPerStepLowerLimit()*2.0F;
   if (settings.usPerStepCurrent > 1000000.0F) settings.usPerStepCurrent = usPerStepBase;
   if (settings.usPerStepCurrent < usPerStepBase/2.0F) settings.usPerStepCurrent = usPerStepBase/2.0F;
   if (settings.usPerStepCurrent > usPerStepBase*2.0F) settings.usPerStepCurrent = usPerStepBase*2.0F;
 
-  if (AXIS1_SYNC_THRESHOLD != OFF || AXIS2_SYNC_THRESHOLD != OFF) absoluteEncodersPresent = true;
+  axis1.setFrequencyMax(((1000000.0F/usPerStepBase)/axis1.getStepsPerMeasure())*2.0F);
+  axis2.setFrequencyMax(((1000000.0F/usPerStepBase)/axis2.getStepsPerMeasure())*2.0F);
+
+  absoluteEncodersPresent = axis1.motor->hasAbsoluteEncoder() || axis2.motor->hasAbsoluteEncoder();
   if (AXIS1_HOME_TOLERANCE != 0.0F || AXIS2_HOME_TOLERANCE != 0.0F ||
       AXIS1_TARGET_TOLERANCE != 0.0F || AXIS2_TARGET_TOLERANCE != 0.0F || absoluteEncodersPresent) encodersPresent = true;
 
@@ -95,16 +96,16 @@ CommandError Goto::request(Coordinate coords, PierSideSelect pierSideSelect, boo
     #if AXIS1_SECTOR_GEAR == ON
       transform.mountToInstrument(&target, &a1, &a2);
       a1 = a1 - axis1.getIndexPosition();
-      if (a1 < axis1.settings.limits.min) return CE_SLEW_ERR_OUTSIDE_LIMITS;
-      if (a1 > axis1.settings.limits.max) return CE_SLEW_ERR_OUTSIDE_LIMITS;
+      if (a1 < axis1.getLimitMin()) return CE_SLEW_ERR_OUTSIDE_LIMITS;
+      if (a1 > axis1.getLimitMax()) return CE_SLEW_ERR_OUTSIDE_LIMITS;
     #endif
 
     // handle special case of a tangent arm Dec
     #if AXIS2_TANGENT_ARM == ON
       transform.mountToInstrument(&target, &a1, &a2);
       a2 = a2 - axis2.getIndexPosition();
-      if (a2 < axis2.settings.limits.min) return CE_SLEW_ERR_OUTSIDE_LIMITS;
-      if (a2 > axis2.settings.limits.max) return CE_SLEW_ERR_OUTSIDE_LIMITS;
+      if (a2 < axis2.getLimitMin()) return CE_SLEW_ERR_OUTSIDE_LIMITS;
+      if (a2 > axis2.getLimitMax()) return CE_SLEW_ERR_OUTSIDE_LIMITS;
     #endif
   #endif
 
@@ -141,6 +142,19 @@ CommandError Goto::request(Coordinate coords, PierSideSelect pierSideSelect, boo
     VLF("MSG: Mount, goto changes pier side, setting waypoint at home");
     waypoint(&current);
   }
+
+  // allow goto and enable tracking after any of the limits below are exceeded
+  // typically these are triggered by tracking into the relevant limit and
+  // a goto is safe since it should always move away from the limit else it wouldn't be allowed
+  // finally I enabling tracking again since that allows for easy recovery
+  #if LIMIT_RECOVERY == ON
+    if (limits.isBelowHorizon() || limits.isPastMeridianW() || limits.isPastAxis1Max()) {
+      limits.limitsDisablePeriod(1.0F);
+      #if LIMIT_RECOVERY_WITH_TRACKING == ON
+        if (home.state != HS_HOMING && park.state != PS_PARKING) mount.tracking(true);
+      #endif
+    }
+  #endif
 
   // start the goto monitor
   if (taskHandle != 0) tasks.remove(taskHandle);
@@ -202,9 +216,15 @@ CommandError Goto::requestSync(Coordinate coords, PierSideSelect pierSideSelect,
 
   double a1, a2;
   transform.mountToInstrument(&target, &a1, &a2);
+  a1 += target.a1Correction;
 
-  axis1.setInstrumentCoordinate(a1 + target.a1Correction);
-  axis2.setInstrumentCoordinate(a2);
+  e = limits.validateInstrumentCoordinate(1, a1);
+  if (e != CE_NONE) return e;
+  e = limits.validateInstrumentCoordinate(2, a2);
+  if (e != CE_NONE) return e;
+  e = limits.setInstrumentCoordinate(1, a1, true);
+  if (e == CE_NONE) e = limits.setInstrumentCoordinate(2, a2, true);
+  if (e != CE_NONE) return e;
 
   limits.enabled(true);
   mount.syncFromOnStepToEncoders = true;
@@ -238,6 +258,11 @@ CommandError Goto::setTarget(Coordinate *coords, PierSideSelect pierSideSelect, 
   if (!transform.meridianFlips) pierSideSelect = PSS_EAST_ONLY;
 
   bool pierSideBest = false;
+  if (pierSideSelect == PSS_AUTO) {
+    if (transform.mountType != ALTAZM && transform.mountType != ALTALT) {
+      if (isGoto && (current.h < -Deg90 || current.h > Deg90)) pierSideSelect = PSS_WEST; else pierSideSelect = PSS_EAST;
+    } else pierSideSelect = PSS_BEST;
+  }
   if (pierSideSelect == PSS_BEST) {
     if (current.pierSide == PIER_SIDE_WEST) pierSideSelect = PSS_WEST; else pierSideSelect = PSS_EAST;
     pierSideBest = true;
@@ -447,7 +472,9 @@ void Goto::waypoint(Coordinate *current) {
 
 // monitor goto
 void Goto::poll() {
-  if (stage == GG_READY_ABORT) {
+  // abort if either axis encounters a limit
+  if (stage != GG_ABORT &&
+      (stage == GG_READY_ABORT || axis1.motionError(DIR_BOTH) || axis2.motionError(DIR_BOTH))) {
     VLF("MSG: Mount, goto abort requested");
     stage = GG_ABORT;
     meridianFlipHome.paused = false;
@@ -456,17 +483,19 @@ void Goto::poll() {
     axis2.autoSlewAbort();
   }
 
+  const unsigned long now = millis();
+
   // abort any goto that might hang!
   if (axis1.isSlewing()) {
-    if (!axis1.nearTarget()) nearTargetTimeoutAxis1 = millis();
-    if ((long)(millis() - nearTargetTimeoutAxis1) > 15000) {
+    if (!axis1.nearTarget()) nearTargetTimeoutAxis1 = now;
+    if (now - nearTargetTimeoutAxis1 > 15000U) {
       DLF("WRN: Mount, goto axis1 timed out aborting slew!");
       axis1.autoSlewAbort();
     }
   }
   if (axis2.isSlewing()) {
-    if (!axis2.nearTarget()) nearTargetTimeoutAxis2 = millis();
-    if ((long)(millis() - nearTargetTimeoutAxis2) > 15000) {
+    if (!axis2.nearTarget()) nearTargetTimeoutAxis2 = now;
+    if (now - nearTargetTimeoutAxis2 > 15000U) {
       DLF("WRN: Mount, goto axis2 timed out aborting slew!");
       axis2.autoSlewAbort();
     }
@@ -494,13 +523,13 @@ void Goto::poll() {
     if (stage == GG_NEAR_DESTINATION_START) {
       if (nearDestinationRefineStages >= 1) {
         VLF("MSG: Mount, goto near destination wait started");
-        nearDestinationTimeout = millis() + GOTO_SETTLE_TIME;
+        nearDestinationTimeout = now + GOTO_SETTLE_TIME;
         stage = GG_NEAR_DESTINATION_WAIT;
       } else stage = GG_NEAR_DESTINATION;
     } else
 
     if (stage == GG_NEAR_DESTINATION_WAIT) {
-      if ((long)(millis() - nearDestinationTimeout) > 0) {
+      if ((long)(now - nearDestinationTimeout) > 0) {
         VLF("MSG: Mount, goto near destination wait done");
         stage = GG_NEAR_DESTINATION;
       }
@@ -609,7 +638,7 @@ void Goto::poll() {
     target.d += siderealToRad(mount.trackingRateOffsetDec)/FRACTIONAL_SEC;
     transform.rightAscensionToHourAngle(&target, false);
     if (stage >= GG_NEAR_DESTINATION_START) {
-      if (millis() - nearTargetTimeout < 5000) {
+      if (millis() - nearTargetTimeout < 5000U) {
         Coordinate nearTarget = target;
         nearTarget.h -= slewDestinationDistHA;
         nearTarget.d -= slewDestinationDistDec;
@@ -631,8 +660,9 @@ void Goto::poll() {
 CommandError Goto::startAutoSlew() {
   CommandError e;
 
-  nearTargetTimeoutAxis1 = millis();
-  nearTargetTimeoutAxis2 = millis();
+  const unsigned long now = millis();
+  nearTargetTimeoutAxis1 = now;
+  nearTargetTimeoutAxis2 = now;
 
   if (stage == GG_NEAR_DESTINATION || stage == GG_DESTINATION) {
     destination.h -= slewDestinationDistHA;

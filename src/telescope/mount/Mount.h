@@ -29,14 +29,26 @@ enum TrackingState: uint8_t    {TS_NONE, TS_SIDEREAL};
 
 #pragma pack(1)
 #define MountSettingsSize 9
+
 typedef struct Backlash {
   float axis1;
   float axis2;
 } Backlash;
+
 typedef struct MountSettings {
   RateCompensation rc;
   Backlash backlash;
+  uint8_t mountType;
 } MountSettings;
+
+typedef struct MountPositionMemory {
+  float a1;
+  float a2;
+  uint8_t mountType:4;
+  uint8_t seq:2;
+  uint8_t reserved:2;
+} MountPositionMemory;
+
 #pragma pack()
 
 extern Axis axis1;
@@ -47,7 +59,7 @@ class Mount {
     void init();
     void begin();
 
-    bool command(char *reply, char *command, char *parameter, bool *supressFrame, bool *numericReply, CommandError *commandError);
+    bool command(char *reply, char *command, char *parameter, bool *suppressFrame, bool *numericReply, CommandError *commandError);
 
     // get current equatorial position (Native coordinate system)
     Coordinate getPosition(CoordReturn coordReturn = CR_MOUNT_EQU);
@@ -100,7 +112,7 @@ class Mount {
     float trackingRateOffsetRA = 0.0F;
     float trackingRateOffsetDec = 0.0F;
 
-    MountSettings settings = {RC_DEFAULT, { 0, 0 }};
+    MountSettings settings = {RC_DEFAULT, { 0, 0 }, MOUNT_SUBTYPE};
 
   private:
     // alternate tracking rate calculation method
@@ -115,24 +127,19 @@ class Mount {
     Coordinate current;
 
     TrackingState trackingState = TS_NONE;
+
+    uint32_t nvKey;
+
+    #if MOUNT_COORDS_MEMORY == ON
+      uint32_t nvKeyLastA, nvKeyLastB;
+      MountPositionMemory lastPosition;
+    #endif
 };
 
-#ifdef AXIS1_STEP_DIR_PRESENT
-  extern StepDirMotor motor1;
-#elif defined(AXIS1_SERVO_PRESENT)
-  extern ServoMotor motor1;
-#elif defined(AXIS1_ODRIVE_PRESENT)
-  extern ODriveMotor motor1;
-#endif
+extern Motor& motor1;
 extern Axis axis1;
 
-#ifdef AXIS2_STEP_DIR_PRESENT
-  extern StepDirMotor motor2;
-#elif defined(AXIS2_SERVO_PRESENT)
-  extern ServoMotor motor2;
-#elif defined(AXIS2_ODRIVE_PRESENT)
-  extern ODriveMotor motor2;
-#endif
+extern Motor& motor2;
 extern Axis axis2;
 
 extern Mount mount;

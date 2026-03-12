@@ -14,30 +14,35 @@
 #define FYSETC_S6_2                 4      // FYSETC S6 Version 2.0, 3D printer board, a 6-axis design
 
 #define BTT_SKR_PRO                 5      // BigTreeTech SKR PRO Version 1.2
+#define BTT_OCTOPUS_PRO             6      // BigTreeTech Octopus Pro Version 1.1
 
-#define MiniPCB                     6      // small 2-axis design for embedded or mounting behind a panel, Teensy3.2
-#define MiniPCB13                   7      // improved version 1.3 adds better support for ESP-01 flashing and optional I2C
+#define MiniPCB                     7      // small 2-axis design for embedded or mounting behind a panel, Teensy3.2
+#define MiniPCB13                   8      // improved version 1.3 adds better support for ESP-01 flashing and optional I2C
 
-#define MiniPCB2                    8      // 2-axis design for small alum. case, Teensy3.2
+#define MiniPCB2                    9      // 2-axis design for small alum. case, Teensy3.2
 
-#define MaxPCB                      9      // first generation custom 4-axis board, Teensy3.5/Teensy3.6
-#define MaxPCB2                     10     // improved second generation for alum. case, Teensy3.5/Teensy3.6
-#define MaxPCB3                     11     // improved third generation for alum. case, Teensy4.1
-#define MaxPCB4                     12     // for Teensy4.1 w/TMC2209 support
-#define MaxSTM3                     13     // update to the MaxPCB3 using an Blackpill F411CE instead of the Teensy3.5/3.6
-#define MaxSTM3I                    14     // as above but using an onboard STM32F411CE with M24C64 EEPROM as default
+#define MaxPCB                      10     // first generation custom 4-axis board, Teensy3.5/Teensy3.6
+#define MaxPCB2                     11     // second generation adds alum. case, Teensy3.5/Teensy3.6
+#define MaxPCB3                     12     // third generation adds SPI four axis support, Teensy4.1
+#define MaxPCB4                     13     // forth generation with SPI/TMC2209 support, Teensy4.1
+#define RESERVED                    14     // RESERVED
 
-#define MaxESP3                     15     // adds 4th axis and option to flash the WeMos D1 Mini WiFi through OnStep
-#define MaxESP4                     16     // for ESP32S w/TMC2209 support
-#define CNC3                        17     // Arduino CNC Sheild on WeMos D1 R32 (ESP32)
-#define MicroScope                  18     // MicroScope PCB (ESP32, experimental and may be removed at any point!, USE AY YOUR OWN RISK!!!)
+#define MaxSTM3                     15     // update to the MaxPCB3 using an Blackpill F411CE instead of the Teensy3.5/3.6
+#define MaxSTM3I                    16     // as above but using an onboard STM32F411CE with M24C64 EEPROM as default
 
-#define STM32Blue                   19     // Khalid and Dave's PCB for STM32 Blue pill (STM32F103CB and STM32F303CC)
+#define MaxESP3                     17     // adds 4th axis and option to flash the WeMos D1 Mini WiFi through OnStep
+#define MaxESP4                     18     // for ESP32S w/TMC2209 support
+#define CNC3                        19     // Arduino CNC Sheild on WeMos D1 R32 (ESP32)
+#define MicroScope                  20     // MicroScope PCB (ESP32, experimental and may be removed at any point!, USE AY YOUR OWN RISK!!!)
 
-#define JTWSTM                      20     // JTW Astronomy JTWSTM telescope mount controller Rev 2.1
-#define MANTICORE                   21     // JTW Astronomy MANTICORE telescope mount controller Rev 1.0
+#define STM32Blue                   21     // Khalid and Dave's PCB for STM32 Blue pill (STM32F103CB and STM32F303CC)
 
-#define PINMAP_LAST                 21
+#define JTWSTM                      22     // JTW Astronomy JTWSTM telescope mount controller Rev 2.1
+#define MANTICORE                   23     // JTW Astronomy MANTICORE telescope mount controller Rev 1.0
+
+#define SAL_XB1                     24     // SAL-XB1 telescope mount controller
+
+#define PINMAP_LAST                 24
 
 // WEATHER sensors (temperature, pressure, and humidity)
 #define WEATHER_FIRST               1
@@ -95,7 +100,8 @@
 #define EAST                        1      // same as PSS_EAST
 #define WEST                        2      // same as PSS_WEST
 #define BEST                        3      // same as PSS_BEST
-#define PIER_SIDE_LAST              3
+#define AUTOMATIC                   4      // same as PSS_AUTO
+#define PIER_SIDE_LAST              4
 
 // COMPENSATED TRACKING
 #define COMPENSATED_TRACKING_FIRST  1
@@ -131,12 +137,12 @@
 // --------------------------------------------------------------------------------------------------------------------------
 
 // task manager
-#define TASKS_MAX                   52     // up to 52 tasks
+#define TASKS_MAX                   60     // up to 60 tasks
 #define TASKS_SKIP_MISSED                  // just skip missed tasks if too late
 #ifdef ESP32
-  #define TASKS_HWTIMERS             4     // up to 4 hardware timers
+  #define TASKS_HWTIMERS            4      // up to 4 hardware timers
 #else
-  #define TASKS_HWTIMERS             3
+  #define TASKS_HWTIMERS            3
 #endif
 
 // default start of axis class hardware timers
@@ -147,31 +153,6 @@
 #define SERIAL_ST4_SERVER_PRESENT
 
 // NV -------------------------------------------------------------------------------------------------------------------
-#define INIT_NV_KEY                 583928942UL
 
-#define NV_KEY                      0      // bytes: 4   , 4
-#define NV_SITE_NUMBER              4      // bytes: 1   , 1
-#define NV_SITE_BASE                5      // bytes: 40*4, 160
-#define NV_SITE_JD_BASE             165    // bytes: 16  , 16
-
-#define NV_MOUNT_SETTINGS_BASE      181    // bytes: 9   , 9
-#define NV_MOUNT_TYPE_BASE          190    // bytes: 1   , 1
-#define NV_MOUNT_GOTO_BASE          191    // bytes: 6   , 6
-#define NV_MOUNT_GUIDE_BASE         197    // bytes: 3   , 3
-#define NV_MOUNT_LIMITS_BASE        200    // bytes: 16  , 16
-#define NV_MOUNT_HOME_BASE          216    // bytes: 11 ,  11
-#define NV_MOUNT_PARK_BASE          227    // bytes: 15  , 15
-#define NV_MOUNT_PEC_BASE           242    // bytes: 6   , 6
-#define NV_MOUNT_STATUS_BASE        248    // bytes: 1   , 1
-#define NV_MOUNT_LAST_POSITION      249    // bytes: 9   , 9
-
-#define NV_ALIGN_MODEL_BASE         258    // bytes: 48  , 48
-#define NV_AXIS_SETTINGS_REVERT     306    // bytes: 2   , 2
-#define NV_AXIS_SETTINGS_BASE       308    // bytes: 45*9, 405
-#define NV_AXIS_ENCODER_ZERO_BASE   713    // bytes: 4 *2, 8
-#define NV_FOCUSER_SETTINGS_BASE    705    // bytes: 20*6, 120
-#define NV_ROTATOR_SETTINGS_BASE    833    // bytes: 11  , 11
-#define NV_FEATURE_SETTINGS_BASE    844    // bytes: 5 *8, 40
-#define NV_TELESCOPE_SETTINGS_BASE  884    // bytes: 2   , 2
-
-#define NV_LAST                     885
+// unique volume signature for this volume/partition layout
+#define NV_VOLUME_SIGNATURE         0x0001u

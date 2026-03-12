@@ -11,17 +11,20 @@
   #define SERIAL_ENCODER_BAUD 460800
 #endif
 
+#ifndef SERIAL_ENCODER_ABSOLUTE
+  #define SERIAL_ENCODER_ABSOLUTE OFF
+#endif
+
 class SerialBridge : public Encoder {
   public:
     SerialBridge(int16_t axis);
+    bool isAbsolute() const override { return SERIAL_ENCODER_ABSOLUTE == ON; }
     int32_t read();
     void write(int32_t count);
     bool errorThresholdExceeded() { return errorDetected; }
 
   private:
-    int32_t raw();
-
-    int32_t offset = 0;
+    int32_t getCount();
 
     char channel[2] = "0";
     unsigned long lastReadMillis = 0;
