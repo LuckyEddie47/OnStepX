@@ -29,6 +29,21 @@
 #define SERIAL_E_BAUD_DEFAULT         OFF //    OFF, n. Baud rate as above. See (src/pinmaps/) for Serial port assignments.   Infreq
 #define SERIAL_RADIO    WIFI_ACCESS_POINT //    OFF, Use BLUETOOTH or WIFI_ACCESS_POINT or WIFI_STATION (ESP32 only.)         Option
 
+// My Additions for Net
+#define AP_SSID                    HOST_NAME
+#define AP_PASSWORD              "onstepg11"
+#define STA_AP_FALLBACK                 true
+#define STA_ENABLED                     true
+#define STA_AUTO_RECONNECT              true
+#define STA_SSID                "HomeLeeNet"
+#define STA_PASSWORD            "FamiLeeNet"
+#define STA_DHCP_ENABLED                true
+#define STA_IP_ADDR          {192,168,7,211}
+#define STA_GATEWAY            {192,168,7,1}
+#define STA_SN_MASK          {255,255,255,0}
+#define STA_HOST_NAME              HOST_NAME
+#define STA_TARGET_IP_ADDR     {192,168,7,1}
+
 // STATUS --------------------------------------------- see https://onstep.groups.io/g/main/wiki/Configuration_Controller#STATUS_LED
 #define STATUS_LED                     ON //    OFF, Steady illumination if no error, blinks w/error code otherwise.          Option
 
