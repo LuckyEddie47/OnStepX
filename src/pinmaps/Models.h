@@ -91,10 +91,6 @@
   #define PINMAP_STR "SAL-XB1"
   #include "Pins.SAL_XB1.h"
 #endif
-#if PINMAP == OPB_ESP32
-  #define PINMAP_STR "OPB ESP32"
-  #include "Pins.OPB_ESP32.h"
-#endif
 #ifndef PINMAP_STR
   #define PINMAP_STR "Unknown"
 #endif

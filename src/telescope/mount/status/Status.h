@@ -26,6 +26,10 @@ class Status {
 
     bool command(char *reply, char *command, char *parameter, bool *suppressFrame, bool *numericReply, CommandError *commandError);
 
+    // current mount fault/status code for external reporting
+    uint8_t errorCode();
+    bool startupAuthorityTrusted();
+
     // mount status LED flash rate (in ms)
     void flashRate(int period);
 

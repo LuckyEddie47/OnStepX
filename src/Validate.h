@@ -264,6 +264,43 @@
   #endif
 #endif
 
+#if defined(AXIS1_SERVO_PRESENT) && \
+    (AXIS1_ENCODER == AS37_H39B_B || AXIS1_ENCODER == JTW_24BIT || AXIS1_ENCODER == JTW_26BIT || AXIS1_ENCODER == LIKA_ASC85 || \
+     (AXIS1_ENCODER == SERIAL_BRIDGE && SERIAL_ENCODER_ABSOLUTE == ON))
+  #define HAS_ABSOLUTE_ENCODER_SERVO_AXIS1
+#endif
+
+#if defined(AXIS2_SERVO_PRESENT) && \
+    (AXIS2_ENCODER == AS37_H39B_B || AXIS2_ENCODER == JTW_24BIT || AXIS2_ENCODER == JTW_26BIT || AXIS2_ENCODER == LIKA_ASC85 || \
+     (AXIS2_ENCODER == SERIAL_BRIDGE && SERIAL_ENCODER_ABSOLUTE == ON))
+  #define HAS_ABSOLUTE_ENCODER_SERVO_AXIS2
+#endif
+
+#if defined(HAS_ABSOLUTE_ENCODER_SERVO_AXIS1) && defined(HAS_ABSOLUTE_ENCODER_SERVO_AXIS2)
+  #define HAS_ABSOLUTE_ENCODER_SERVO
+#endif
+
+#if AXIS1_DRIVER_MODEL == ODRIVE
+  #define AXIS1_HAS_ABSOLUTE_COORD_AUTHORITY ODRIVE_ABSOLUTE
+#elif defined(HAS_ABSOLUTE_ENCODER_SERVO_AXIS1)
+  #define AXIS1_HAS_ABSOLUTE_COORD_AUTHORITY ON
+#else
+  #define AXIS1_HAS_ABSOLUTE_COORD_AUTHORITY OFF
+#endif
+
+#if AXIS2_DRIVER_MODEL == ODRIVE
+  #define AXIS2_HAS_ABSOLUTE_COORD_AUTHORITY ODRIVE_ABSOLUTE
+#elif defined(HAS_ABSOLUTE_ENCODER_SERVO_AXIS2)
+  #define AXIS2_HAS_ABSOLUTE_COORD_AUTHORITY ON
+#else
+  #define AXIS2_HAS_ABSOLUTE_COORD_AUTHORITY OFF
+#endif
+
+#if (AXIS1_HAS_ABSOLUTE_COORD_AUTHORITY == ON && AXIS2_HAS_ABSOLUTE_COORD_AUTHORITY == OFF) || \
+    (AXIS1_HAS_ABSOLUTE_COORD_AUTHORITY == OFF && AXIS2_HAS_ABSOLUTE_COORD_AUTHORITY == ON)
+  #error "Configuration (Config.h): Axes 1 and 2 must both use absolute coordinate authority or neither may use it."
+#endif
+
 #if AXIS2_REVERSE != ON && AXIS2_REVERSE != OFF
   #error "Configuration (Config.h): Setting AXIS2_REVERSE unknown, use OFF or ON."
 #endif
@@ -330,6 +367,14 @@
 
 #if MOUNT_COORDS_MEMORY != ON && MOUNT_COORDS_MEMORY != OFF
   #error "Configuration (Config.h): Setting MOUNT_COORDS_MEMORY unknown, use ON or OFF"
+#endif
+
+#if MOUNT_STARTUP_MODE < SA_STRICT || MOUNT_STARTUP_MODE > SA_PERMISSIVE
+  #error "Configuration (Config.h): Setting MOUNT_STARTUP_MODE unknown, use SA_STRICT, SA_AUTO, or SA_PERMISSIVE"
+#endif
+
+#if NV_INIT_ERROR_REVOKES_AUTHORITY != ON && NV_INIT_ERROR_REVOKES_AUTHORITY != OFF
+  #error "Configuration (Config.h): Setting NV_INIT_ERROR_REVOKES_AUTHORITY unknown, use OFF or ON."
 #endif
 
 #if MOUNT_ENABLE_IN_STANDBY != ON && MOUNT_ENABLE_IN_STANDBY != OFF
@@ -485,6 +530,17 @@
   #error "Configuration (Config.h): Setting PIER_SIDE_SYNC_CHANGE_SIDES unknown, use OFF or ON."
 #endif
 
+static_assert(AXIS1_LIMIT_SYNC == OFF || (AXIS1_LIMIT_SYNC >= 0 && AXIS1_LIMIT_SYNC <= 90),
+  "Configuration (Config.h): Setting AXIS1_LIMIT_SYNC unknown, use OFF or value in the range 0 to 90.");
+
+static_assert(AXIS2_LIMIT_SYNC == OFF || (AXIS2_LIMIT_SYNC >= 0 && AXIS2_LIMIT_SYNC <= 90),
+  "Configuration (Config.h): Setting AXIS2_LIMIT_SYNC unknown, use OFF or value in the range 0 to 90.");
+
+#if PIER_SIDE_SYNC_CHANGE_SIDES == ON
+  static_assert(AXIS1_LIMIT_SYNC == OFF && AXIS2_LIMIT_SYNC == OFF,
+    "Configuration (Config.h): Enabling AXIS1_LIMIT_SYNC or AXIS2_LIMIT_SYNC requires PIER_SIDE_SYNC_CHANGE_SIDES to be OFF.");
+#endif
+
 #if PIER_SIDE_PREFERRED_DEFAULT < PIER_SIDE_FIRST && PIER_SIDE_PREFERRED_DEFAULT > PIER_SIDE_LAST
   #error "Configuration (Config.h): Setting PIER_SIDE_PREFERRED_DEFAULT unknown, use EAST or WEST or BEST or AUTOMATIC."
 #endif
@@ -494,8 +550,10 @@
 #endif
 
 // PARKING BEHAVIOUR
-#if PARK_STRICT != ON && PARK_STRICT != OFF
-  #error "Configuration (Config.h): Setting PARK_STRICT unknown, use OFF or ON."
+#ifdef PARK_STRICT
+  #if PARK_STRICT == ON
+    #error "Configuration (Config.h): PARK_STRICT is obsolete. Remove it and use the startup authority / parking policy defaults instead."
+  #endif
 #endif
 
 // ROTATOR ---------------------------------------

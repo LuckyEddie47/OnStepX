@@ -9,6 +9,8 @@
 #include "../../../lib/gpioEx/GpioEx.h"
 #include "../../../lib/nv/Nv.h"
 
+#include "../Mount.h"
+#include "../limits/Limits.h"
 #include "../park/Park.h"
 
 #if STATUS_MOUNT_LED != OFF && MOUNT_LED_PIN != OFF
@@ -81,6 +83,14 @@ void Status::flashRate(int period) {
   #else
     period = period;
   #endif
+}
+
+uint8_t Status::errorCode() {
+  return limits.errorCode();
+}
+
+bool Status::startupAuthorityTrusted() {
+  return mount.startupAuthorityTrusted();
 }
 
 // mount misc. general status indicators

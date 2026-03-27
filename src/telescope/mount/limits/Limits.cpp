@@ -38,6 +38,68 @@ CommandError Limits::validateTarget(Coordinate *coords, bool isGoto) {
   return validateTarget(coords, &eastReachable, &westReachable, &eastCorrection, &westCorrection, isGoto);
 }
 
+CommandError Limits::validateInstrumentCoordinate(uint8_t axisNumber, double value, bool bypass) {
+  if (bypass) return CE_NONE;
+  if (!limitsEnabled) return CE_NONE;
+
+  #if AXIS1_WRAP == ON
+    return CE_NONE;
+  #else
+    #if AXIS1_SECTOR_GEAR == ON || AXIS2_TANGENT_ARM == ON
+      return CE_NONE;
+    #endif
+
+    double delta;
+    long proposedIndexSteps;
+    long nominalIndexSteps;
+
+    switch (axisNumber) {
+      case 1:
+        if (AXIS1_LIMIT_SYNC == OFF) return CE_NONE;
+        proposedIndexSteps = lround(value*axis1.getStepsPerMeasure()) - (axis1.getInstrumentCoordinateSteps() - axis1.getIndexPositionSteps());
+        nominalIndexSteps = mount.getNominalIndexPositionSteps(1);
+        delta = fabs((double)(proposedIndexSteps - nominalIndexSteps))/axis1.getStepsPerMeasure();
+        if (delta > degToRadF((float)AXIS1_LIMIT_SYNC)) {
+          VLF("MSG: Mount, sync axis1 rejected (exceeds threshold)");
+          return CE_SLEW_ERR_OUTSIDE_LIMITS;
+        }
+      break;
+      case 2:
+        if (AXIS2_LIMIT_SYNC == OFF) return CE_NONE;
+        proposedIndexSteps = lround(value*axis2.getStepsPerMeasure()) - (axis2.getInstrumentCoordinateSteps() - axis2.getIndexPositionSteps());
+        nominalIndexSteps = mount.getNominalIndexPositionSteps(2);
+        delta = fabs((double)(proposedIndexSteps - nominalIndexSteps))/axis2.getStepsPerMeasure();
+        if (delta > degToRadF((float)AXIS2_LIMIT_SYNC)) {
+          VLF("MSG: Mount, sync axis2 rejected (exceeds threshold)");
+          return CE_SLEW_ERR_OUTSIDE_LIMITS;
+        }
+      break;
+      default:
+        return CE_PARAM_RANGE;
+    }
+
+    return CE_NONE;
+  #endif
+}
+
+CommandError Limits::setInstrumentCoordinate(uint8_t axisNumber, double value, bool bypass) {
+  CommandError e = validateInstrumentCoordinate(axisNumber, value, bypass);
+  if (e != CE_NONE) return e;
+
+  switch (axisNumber) {
+    case 1:
+      axis1.setInstrumentCoordinate(value);
+    break;
+    case 2:
+      axis2.setInstrumentCoordinate(value);
+    break;
+    default:
+      return CE_PARAM_RANGE;
+  }
+
+  return CE_NONE;
+}
+
 // target coordinate check ahead of sync, goto, etc.
 CommandError Limits::validateTarget(Coordinate *coords, bool *eastReachable, bool *westReachable, double *eastCorrection, double *westCorrection, bool isGoto) {
   if (flt(coords->a, settings.altitude.min)) return CE_SLEW_ERR_BELOW_HORIZON;

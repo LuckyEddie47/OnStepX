@@ -12,6 +12,7 @@
 #include "../Mount.h"
 #include "../goto/Goto.h"
 #include "../guide/Guide.h"
+#include "../limits/Limits.h"
 
 // init the home position (according to settings and mount type)
 void Home::init() {
@@ -46,6 +47,16 @@ void Home::init() {
 
 // move mount to the home position
 CommandError Home::request() {
+    #if GOTO_FEATURE == OFF
+      DLF("WRN: Mount, home rejected because goto is disabled");
+      return CE_SLEW_ERR_UNSPECIFIED;
+    #endif
+
+    failed = false;
+    if (!mount.startupAuthorityTrusted() && !hasSense) {
+      DLF("WRN: Mount, home rejected because startup authority is not trusted and no home switches are present");
+      return CE_SLEW_ERR_UNSPECIFIED;
+    }
     if (!site.dateIsReady || !site.timeIsReady) return CE_SLEW_ERR_IN_STANDBY;
     if (goTo.state != GS_NONE) return CE_SLEW_IN_MOTION;
     if (guide.state != GU_NONE) {
@@ -65,6 +76,8 @@ CommandError Home::request() {
     Coordinate homePosition = getPosition(CR_MOUNT_EQU);
 
     if (hasSense) {
+      CommandError e;
+
       #if AXIS1_SECTOR_GEAR == OFF && AXIS2_TANGENT_ARM == OFF
         double a1 = axis1.getInstrumentCoordinate() - homePosition.a1;
         double a2 = axis2.getInstrumentCoordinate() - homePosition.a2;
@@ -74,14 +87,21 @@ CommandError Home::request() {
         if (abs(a1) > degToRad(AXIS1_SENSE_HOME_DIST_LIMIT) - abs(arcsecToRad(settings.axis1.senseOffset))) return CE_SLEW_ERR_OUTSIDE_LIMITS;
         if (abs(a2) > degToRad(AXIS2_SENSE_HOME_DIST_LIMIT) - abs(arcsecToRad(settings.axis2.senseOffset))) return CE_SLEW_ERR_OUTSIDE_LIMITS;
 
-        CommandError e = reset(false);
+        e = reset(false);
         if (e != CE_NONE) return e;
       #endif
 
       VLF("MSG: Mount, guiding to home");
       state = HS_HOMING;
       isRequestWithReset = false;
-      guide.startHome();
+      #if MOUNT_COORDS_MEMORY == ON
+        mount.saveCoordinateMemory(false);
+      #endif
+      e = guide.startHome();
+      if (e != CE_NONE) {
+        state = HS_NONE;
+        return e;
+      }
     } else {
       #if AXIS1_SECTOR_GEAR == OFF && AXIS2_TANGENT_ARM == OFF
         VLF("MSG: Mount, moving to home");
@@ -115,6 +135,15 @@ CommandError Home::request() {
 
 // reset mount, moves to the home position first if home switches are present
 CommandError Home::requestWithReset() {
+  #if GOTO_FEATURE == OFF
+    DLF("WRN: Mount, reset/home rejected because goto is disabled");
+    return CE_SLEW_ERR_UNSPECIFIED;
+  #endif
+
+  if (!mount.startupAuthorityTrusted() && !hasSense) {
+    DLF("WRN: Mount, reset/home rejected because startup authority is not trusted and no home switches are present");
+    return CE_SLEW_ERR_UNSPECIFIED;
+  }
   if (hasSense) {
     CommandError result = request();
     isRequestWithReset = true;
@@ -125,16 +154,33 @@ CommandError Home::requestWithReset() {
 // clear home state on abort
 void Home::requestAborted() {
   state = HS_NONE;
+  failed = true;
   mount.tracking(wasTracking);
 }
 
 // after finding home switches displace the mount axes as specified
 void Home::guideDone(bool success) {
-  if (!success) { state = HS_NONE; reset(isRequestWithReset); return; }
+  if (!success) {
+    state = HS_NONE;
+    failed = true;
+    CommandError e = reset(isRequestWithReset);
+    if (e != CE_NONE) {
+      DF("WRN: Home::guideDone(), reset after sensed home failure failed (code "); D(e); DLF(")");
+    } else {
+      DLF("WRN: Home::guideDone(), sensed home failed");
+    }
+    return;
+  }
 
   #if AXIS1_SECTOR_GEAR == OFF && AXIS2_TANGENT_ARM == OFF
     if (useOffset()) {
-      reset(isRequestWithReset);
+      CommandError e = reset(isRequestWithReset, true);
+      if (e != CE_NONE) {
+        state = HS_NONE;
+        failed = true;
+        DF("WRN: Home::guideDone(), reset after sensed home failed (code "); D(e); DLF(")");
+        return;
+      }
 
       #if MOUNT_HOME_AT_OFFSETS == OFF
         VF("MSG: Mount, finishing move to home with goto to (");
@@ -149,18 +195,27 @@ void Home::guideDone(bool success) {
       mount.syncFromOnStepToEncoders = true;
 
       state = HS_NONE;
+      failed = false;
     } else {
       state = HS_NONE;
-      reset(isRequestWithReset);
+      CommandError e = reset(isRequestWithReset, true);
+      if (e != CE_NONE) {
+        failed = true;
+        DF("WRN: Home::guideDone(), reset after sensed home failed (code "); D(e); DLF(")");
+      } else {
+        failed = false;
+        mount.syncFromOnStepToEncoders = true;
+      }
     }
   #else
     state = HS_NONE;
+    failed = false;
 
     #if AXIS1_SECTOR_GEAR == ON 
       VLF("MSG: Mount, sector gear set origin");
       double h = axis1.getInstrumentCoordinate();
       if (axis1.resetPosition(0.0L) != 0) { DLF("WRN: Home::guideDone(), failed to resetPosition Axis1"); exit; }
-      axis1.setInstrumentCoordinate(h);
+      if (limits.setInstrumentCoordinate(1, h, true) != CE_NONE) { DLF("WRN: Home::guideDone(), failed to setInstrumentCoordinate Axis1"); exit; }
       mount.tracking(wasTracking);
     #endif
 
@@ -168,19 +223,22 @@ void Home::guideDone(bool success) {
       VLF("MSG: Mount, tangent arm set origin");
       double d = axis2.getInstrumentCoordinate();
       if (axis2.resetPosition(0.0L) != 0) { DLF("WRN: Home::guideDone(), failed to resetPosition Axis2"); exit; }
-      axis2.setInstrumentCoordinate(d);
+      if (limits.setInstrumentCoordinate(2, d, true) != CE_NONE) { DLF("WRN: Home::guideDone(), failed to setInstrumentCoordinate Axis2"); exit; }
     #endif
+
+    mount.captureNominalIndexPositions();
   #endif
 }
 
 // once homed mark as done
 void Home::requestDone() {
   state = HS_NONE;
+  failed = false;
   reset(false);
 }
 
 // reset mount at home
-CommandError Home::reset(bool fullReset) {
+CommandError Home::reset(bool fullReset, bool authoritative) {
   #if GOTO_FEATURE == ON
     if (goTo.state != GS_NONE) {
       axis1.autoSlewAbort();
@@ -208,9 +266,6 @@ CommandError Home::reset(bool fullReset) {
   Coordinate homePosition = getPosition(CR_MOUNT);
 
   if (!goTo.absoluteEncodersPresent) {
-    if (axis1.resetPosition(0.0L) != 0) { DLF("WRN: Home::reset(), failed to resetPosition Axis1"); }
-    if (axis2.resetPosition(0.0L) != 0) { DLF("WRN: Home::reset(), failed to resetPosition Axis2"); }
-
     #if MOUNT_HOME_AT_OFFSETS == OFF
       if (useOffset() && state == HS_HOMING && !fullReset) {
         homePosition.a1 += arcsecToRad(site.locationEx.latitude.sign*settings.axis1.senseOffset);
@@ -218,9 +273,41 @@ CommandError Home::reset(bool fullReset) {
       }
     #endif
 
-    axis1.setInstrumentCoordinate(homePosition.a1);
-    axis2.setInstrumentCoordinate(homePosition.a2);
+    bool bypassCoordinateLimit = authoritative;
+    #if MOUNT_STARTUP_MODE == SA_AUTO && MOUNT_COORDS_MEMORY == OFF
+      if (!bypassCoordinateLimit && !axis1.motor->hasAbsoluteEncoder() && !axis2.motor->hasAbsoluteEncoder()) {
+        bypassCoordinateLimit = true;
+      }
+    #endif
+
+    CommandError e = limits.validateInstrumentCoordinate(1, homePosition.a1, bypassCoordinateLimit);
+    if (e == CE_NONE) e = limits.validateInstrumentCoordinate(2, homePosition.a2, bypassCoordinateLimit);
+    if (e != CE_NONE) {
+      DLF("WRN: Home::reset(), coordinate reset rejected by sync threshold");
+      if (fullReset) mount.enable(MOUNT_ENABLE_IN_STANDBY == ON);
+      return CE_SLEW_ERR_OUTSIDE_LIMITS;
+    }
+
+    if (axis1.resetPosition(0.0L) != 0) {
+      DLF("WRN: Home::reset(), failed to resetPosition Axis1");
+      if (fullReset) mount.enable(MOUNT_ENABLE_IN_STANDBY == ON);
+      return CE_SLEW_IN_MOTION;
+    }
+    if (axis2.resetPosition(0.0L) != 0) {
+      DLF("WRN: Home::reset(), failed to resetPosition Axis2");
+      if (fullReset) mount.enable(MOUNT_ENABLE_IN_STANDBY == ON);
+      return CE_SLEW_IN_MOTION;
+    }
+
+    e = limits.setInstrumentCoordinate(1, homePosition.a1, true);
+    if (e == CE_NONE) e = limits.setInstrumentCoordinate(2, homePosition.a2, true);
+    if (e != CE_NONE) {
+      if (fullReset) mount.enable(MOUNT_ENABLE_IN_STANDBY == ON);
+      return e;
+    }
   }
+
+  mount.captureNominalIndexPositions();
 
   axis1.setBacklash(mount.settings.backlash.axis1);
   axis2.setBacklash(mount.settings.backlash.axis2);
@@ -244,6 +331,8 @@ CommandError Home::reset(bool fullReset) {
     V(radToDeg(homePosition.a1)); VF(","); V(radToDeg(homePosition.a2));
     VLF(")");
   }
+
+  if (authoritative) mount.setStartupAuthorityTrusted(true);
 
   return CE_NONE;
 }

@@ -41,8 +41,8 @@
 #define MANTICORE                   23     // JTW Astronomy MANTICORE telescope mount controller Rev 1.0
 
 #define SAL_XB1                     24     // SAL-XB1 telescope mount controller
-#define OPB_ESP32                   25     // Open Power Box on ESP32
-#define PINMAP_LAST                 25
+
+#define PINMAP_LAST                 24
 
 // WEATHER sensors (temperature, pressure, and humidity)
 #define WEATHER_FIRST               1
@@ -84,6 +84,11 @@
 #define TOPO_STRICT                 3
 #define ASTROMETRIC_J2000           4
 #define MOUNT_COORDS_LAST           4
+
+// STARTUP AUTHORITY MODE
+#define SA_STRICT                   1
+#define SA_AUTO                     2
+#define SA_PERMISSIVE               3
 
 // TIME LOCATION SOURCE devices supported
 #define TLS_FIRST                   1

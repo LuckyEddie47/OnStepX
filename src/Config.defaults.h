@@ -247,11 +247,8 @@
 #ifndef AXIS1_LIMIT_MAX
 #define AXIS1_LIMIT_MAX               180                         // in degrees
 #endif
-#ifdef AXIS1_SYNC_THRESHOLD_DEGREES                               // maximum distance from absolute encoder pos in degrees for syncs
-#define AXIS1_SYNC_THRESHOLD lround(AXIS1_SYNC_THRESHOLD_DEGREES*AXIS1_STEPS_PER_DEGREE)
-#endif
-#ifndef AXIS1_SYNC_THRESHOLD
-#define AXIS1_SYNC_THRESHOLD          OFF                         // sync threshold in counts (required for absolute encoders) or OFF
+#ifndef AXIS1_LIMIT_SYNC
+#define AXIS1_LIMIT_SYNC              OFF                         // sync limit in degrees, or OFF
 #endif
 #ifndef AXIS1_SENSE_HOME
 #define AXIS1_SENSE_HOME              OFF                         // HIGH or LOW state when clockwise of home position, seen from front
@@ -423,11 +420,8 @@
 #ifndef AXIS2_LIMIT_MAX
 #define AXIS2_LIMIT_MAX               90                          // in degrees
 #endif
-#ifdef AXIS2_SYNC_THRESHOLD_DEGREES
-#define AXIS2_SYNC_THRESHOLD lround(AXIS2_SYNC_THRESHOLD_DEGREES*AXIS2_STEPS_PER_DEGREE)
-#endif
-#ifndef AXIS2_SYNC_THRESHOLD
-#define AXIS2_SYNC_THRESHOLD          OFF
+#ifndef AXIS2_LIMIT_SYNC
+#define AXIS2_LIMIT_SYNC              OFF                         // sync limit in degrees, or OFF
 #endif
 #ifndef AXIS2_SENSE_HOME
 #define AXIS2_SENSE_HOME              OFF                         // HIGH or LOW state when clockwise of home position, seen from above
@@ -626,6 +620,15 @@
 #ifndef MOUNT_COORDS_MEMORY
 #define MOUNT_COORDS_MEMORY           OFF                         // ON Enables mount position memory
 #endif
+// SA_STRICT requires an authority source
+// SA_AUTO grants legacy session trust only when neither paired absolute authority nor coordinate memory are configured
+// SA_PERMISSIVE always grants boot trust
+#ifndef MOUNT_STARTUP_MODE
+#define MOUNT_STARTUP_MODE            SA_AUTO
+#endif
+#ifndef NV_INIT_ERROR_REVOKES_AUTHORITY
+#define NV_INIT_ERROR_REVOKES_AUTHORITY ON                        // ON revokes startup authority trust if NV reports an init/read fault
+#endif
 #ifndef MOUNT_ENABLE_IN_STANDBY
 #define MOUNT_ENABLE_IN_STANDBY       OFF                         // ON Enables mount motor drivers in standby
 #endif
@@ -773,10 +776,6 @@
 
 #ifndef PARK_STATUS
 #define PARK_STATUS                   OFF
-#endif
-
-#ifndef PARK_STRICT
-#define PARK_STRICT                   OFF
 #endif
 
 // pec
@@ -934,9 +933,6 @@
 #endif
 #ifndef AXIS3_LIMIT_MAX
 #define AXIS3_LIMIT_MAX               180                         // in degrees
-#endif
-#ifndef AXIS3_SYNC_THRESHOLD
-#define AXIS3_SYNC_THRESHOLD          OFF
 #endif
 #ifndef AXIS3_SENSE_HOME
 #define AXIS3_SENSE_HOME              OFF
@@ -1121,9 +1117,6 @@
 #ifndef AXIS4_LIMIT_MAX
 #define AXIS4_LIMIT_MAX               50                          // in mm
 #endif
-#ifndef AXIS4_SYNC_THRESHOLD
-#define AXIS4_SYNC_THRESHOLD          OFF
-#endif
 #ifndef AXIS4_HOME_DEFAULT
 #define AXIS4_HOME_DEFAULT            MIDDLE                      // use MINIMUM (zero), MIDDLE (half travel), MAXIMUM (full travel), or a position in microns
 #endif
@@ -1287,9 +1280,6 @@
 #endif
 #ifndef AXIS5_LIMIT_MAX
 #define AXIS5_LIMIT_MAX               50
-#endif
-#ifndef AXIS5_SYNC_THRESHOLD
-#define AXIS5_SYNC_THRESHOLD          OFF
 #endif
 #ifndef AXIS5_HOME_DEFAULT
 #define AXIS5_HOME_DEFAULT            MIDDLE
@@ -1464,9 +1454,6 @@
 #ifndef AXIS6_LIMIT_MAX
 #define AXIS6_LIMIT_MAX               50
 #endif
-#ifndef AXIS6_SYNC_THRESHOLD
-#define AXIS6_SYNC_THRESHOLD          OFF
-#endif
 #ifndef AXIS6_HOME_DEFAULT
 #define AXIS6_HOME_DEFAULT            MIDDLE
 #endif
@@ -1631,9 +1618,6 @@
 #ifndef AXIS7_LIMIT_MAX
 #define AXIS7_LIMIT_MAX               50
 #endif
-#ifndef AXIS7_SYNC_THRESHOLD
-#define AXIS7_SYNC_THRESHOLD          OFF
-#endif
 #ifndef AXIS7_HOME_DEFAULT
 #define AXIS7_HOME_DEFAULT            MIDDLE
 #endif
@@ -1796,9 +1780,6 @@
 #endif
 #ifndef AXIS8_LIMIT_MAX
 #define AXIS8_LIMIT_MAX               50
-#endif
-#ifndef AXIS8_SYNC_THRESHOLD
-#define AXIS8_SYNC_THRESHOLD          OFF
 #endif
 #ifndef AXIS8_HOME_DEFAULT
 #define AXIS8_HOME_DEFAULT            MIDDLE
@@ -1963,9 +1944,6 @@
 #endif
 #ifndef AXIS9_LIMIT_MAX
 #define AXIS9_LIMIT_MAX               50
-#endif
-#ifndef AXIS9_SYNC_THRESHOLD
-#define AXIS9_SYNC_THRESHOLD          OFF
 #endif
 #ifndef AXIS9_HOME_DEFAULT
 #define AXIS9_HOME_DEFAULT            MIDDLE
