@@ -16,8 +16,8 @@
 //#define PLUGIN1                    sample //    OFF, Specify the class instance (same as plugin directory name) to enable.    Option
 //#include "sample/Sample.h"                //         Specify the header file to include the class.
 
-#define PLUGIN1                      mqtt //    OFF, Specify the class instance (same as plugin directory name) to enable.    Option
-#include "mqtt/Mqtt.h"                    //         Specify the header file to include the class.
+#define PLUGIN1                       OFF //      mqtt //    OFF, Specify the class instance (same as plugin directory name) to enable.    Option
+//#include "mqtt/Mqtt.h"                  //         Specify the header file to include the class.
 #define PLUGIN1_COMMAND_PROCESSING     ON //    OFF, Set to ON for plugins that allow command processing
 
 #define PLUGIN2                   website //    OFF, Specify the class instance (same as plugin directory name) to enable.    Option
