@@ -26,7 +26,7 @@
 #define DEBUG_CAN                     OFF //    OFF, Use ON to log CAN interface statistics.                                  Option
 #define DEBUG_ECHO_COMMANDS           OFF //    OFF, Use ON or ERRORS_ONLY to log commands to the debug serial port.          Option
 #define SERIAL_DEBUG               Serial // Serial, Use any available h/w serial port. Serial1 or Serial2, etc.              Option
-#define SERIAL_DEBUG_BAUD          230400 // 230400, n. Where n=9600,19200,57600,115200,230400,460800 (common baud rates.)    Option
+#define SERIAL_DEBUG_BAUD            9600 // 230400, n. Where n=9600,19200,57600,115200,230400,460800 (common baud rates.)    Option
 
 // NON-VOLATILE STORAGE ------------------------------------------------------------------------------------------------------------
 #define NV_WIPE                       OFF //         OFF, Causes the defaults to be written back into NV (FLASH,EEPROM,etc.)  Infreq
