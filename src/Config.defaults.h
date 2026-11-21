@@ -873,6 +873,9 @@
 #ifndef GOTO_PLANNER
 #define GOTO_PLANNER                  OFF                         // ON runs gotos through the waypoints of a planning engine
 #endif
+#ifndef GOTO_SYNCHRONOUS
+#define GOTO_SYNCHRONOUS              OFF                         // ON scales the axis rates so both axes move on a straight line
+#endif                                                            // in axis coordinates, starting and stopping together
 
 // meridian flip, pier side
 #ifndef MFLIP_HOME_DEFAULT

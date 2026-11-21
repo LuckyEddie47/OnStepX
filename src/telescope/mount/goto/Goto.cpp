@@ -18,6 +18,7 @@
 #include "../startupAuthority/StartupAuthority.h"
 #include "../status/Status.h"
 #include "GotoPlanner.h"
+#include "GotoSynchronous.h"
 
 #if GOTO_FEATURE == ON
 inline void gotoWrapper() { goTo.poll(); }
@@ -499,6 +500,10 @@ void Goto::poll() {
     axis2.autoSlewAbort();
   }
 
+  #if GOTO_SYNCHRONOUS == ON
+    if (stage == GG_ABORT) gotoSynchronous.cancel(); else gotoSynchronous.poll();
+  #endif
+
   const unsigned long now = millis();
 
   // abort any goto that might hang!
@@ -591,6 +596,9 @@ void Goto::poll() {
       // back to normal motor frequencies
       axis1.setFrequencyScale(1.0F);
       axis2.setFrequencyScale(1.0F);
+      #if GOTO_SYNCHRONOUS == ON
+        updateAccelerationRates();
+      #endif
 
       // kill this monitor
       tasks.setDurationComplete(taskHandle);
@@ -636,7 +644,12 @@ void Goto::poll() {
       float slowdownFactor2 = 1.0F;
       static float slowdownFactor1a = 1.0F;
       static float slowdownFactor2a = 1.0F;
-      if (a2 < last_a2) slowdownFactor2 = slowdownFactor; else slowdownFactor1 = slowdownFactor;
+      #if GOTO_SYNCHRONOUS == ON
+        slowdownFactor1 = slowdownFactor;
+        slowdownFactor2 = slowdownFactor;
+      #else
+        if (a2 < last_a2) slowdownFactor2 = slowdownFactor; else slowdownFactor1 = slowdownFactor;
+      #endif
 
       if (slowdownFactor1a < slowdownFactor1) { slowdownFactor1a += sfr; }
       if (slowdownFactor1a > slowdownFactor1) { slowdownFactor1a -= sfr; }
@@ -694,7 +707,12 @@ CommandError Goto::startAutoSlew() {
   nearTargetTimeoutAxis1 = now;
   nearTargetTimeoutAxis2 = now;
 
-  if (stage == GG_NEAR_DESTINATION || stage == GG_DESTINATION) {
+  bool offset = stage == GG_NEAR_DESTINATION || stage == GG_DESTINATION;
+  #if GOTO_SYNCHRONOUS == ON
+    // while tracking poll() aims this leg at the offset point, so the axes are scaled for that point
+    if (stage == GG_NEAR_DESTINATION_START && mount.isTracking()) offset = true;
+  #endif
+  if (offset) {
     destination.h -= slewDestinationDistHA;
     destination.d -= slewDestinationDistDec;
   }
@@ -714,8 +732,12 @@ CommandError Goto::startAutoSlew() {
 
   mountStatus.wake();
 
-  e = axis1.autoGoto(radsPerSecondCurrent);
-  if (e == CE_NONE) e = axis2.autoGoto(radsPerSecondCurrent*((float)(AXIS2_SLEW_RATE_PERCENT)/100.0F));
+  #if GOTO_SYNCHRONOUS == ON
+    e = gotoSynchronous.start(radsPerSecondCurrent, radsPerSecondCurrent*((float)(AXIS2_SLEW_RATE_PERCENT)/100.0F));
+  #else
+    e = axis1.autoGoto(radsPerSecondCurrent);
+    if (e == CE_NONE) e = axis2.autoGoto(radsPerSecondCurrent*((float)(AXIS2_SLEW_RATE_PERCENT)/100.0F));
+  #endif
 
   nearTargetTimeout = millis();
 
@@ -757,6 +779,9 @@ void Goto::updateAccelerationRates() {
   axis1.setSlewAccelerationRateAbort(radsPerSecondCurrent/secondsToAccelerateAbort);
   axis2.setSlewAccelerationRate(radsPerSecondCurrent/secondsToAccelerate);
   axis2.setSlewAccelerationRateAbort(radsPerSecondCurrent/secondsToAccelerateAbort);
+  #if GOTO_SYNCHRONOUS == ON
+    gotoSynchronous.setAccelerationRates(radsPerSecondCurrent/secondsToAccelerate, radsPerSecondCurrent/secondsToAccelerateAbort);
+  #endif
 }
 
 // estimate average microseconds per step lower limit

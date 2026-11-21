@@ -515,6 +515,18 @@
   #error "Configuration (Config.h): Setting GOTO_PLANNER ON requires GOTO_FEATURE ON."
 #endif
 
+#if GOTO_SYNCHRONOUS != OFF && GOTO_SYNCHRONOUS != ON
+  #error "Configuration (Config.h): Setting GOTO_SYNCHRONOUS unknown, use OFF or ON."
+#endif
+
+#if GOTO_FEATURE == OFF && GOTO_SYNCHRONOUS == ON
+  #error "Configuration (Config.h): Setting GOTO_SYNCHRONOUS ON requires GOTO_FEATURE ON."
+#endif
+
+#if GOTO_SYNCHRONOUS == ON && (ODRIVE_SLEW_DIRECT == ON || MKS_SLEW_DIRECT == ON)
+  #error "Configuration (Config.h): Setting GOTO_SYNCHRONOUS ON requires ODRIVE_SLEW_DIRECT and MKS_SLEW_DIRECT OFF."
+#endif
+
 // PIER SIDE BEHAVIOUR
 #ifdef MFLIP_SKIP_HOME
   #if MFLIP_SKIP_HOME != ON && MFLIP_SKIP_HOME != OFF
