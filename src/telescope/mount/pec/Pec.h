@@ -69,6 +69,7 @@ class Pec {
       unsigned long accGuideStartTime   = 0;
 
       double   accGuideAxis1            = 0.0L;
+      float    accBlendAxis1            = 0.0F;   // rounding left over from the weighted average, in steps
 
       bool     bufferStart              = false;
       long     bufferIndex              = 0;      // index into the pec buffer
