@@ -88,9 +88,6 @@
           if (!settings.recorded) settings.state = PEC_NONE;
 
           #if (PEC_SENSE) == OFF
-            #if GOTO_FEATURE == ON
-              park.settings.wormSensePositionSteps = 0;
-            #endif
             settings.state = PEC_NONE;
           #else
             VLF("MSG: Mount, PEC adding sense");
@@ -254,6 +251,22 @@
         rate = i/stepsPerSiderealSecond;
       }
     }
+  }
+
+  // worm position to save at park: steps from the index plus one, or 0 if the index isn't known
+  long Pec::getParkWormPosition() {
+    if (!wormSenseFirst || settings.wormRotationSteps <= 0) return 0;
+    long steps = (axis1.getMotorPositionSteps() - wormSenseSteps) % settings.wormRotationSteps;
+    if (steps < 0) steps += settings.wormRotationSteps;
+    return steps + 1;
+  }
+
+  // puts the index back where it was at park, once unpark has reset the motor step count
+  void Pec::setParkWormPosition(long value) {
+    if (value <= 0 || value > settings.wormRotationSteps) return;
+    wormSenseSteps = axis1.getMotorPositionSteps() - (value - 1);
+    wormSenseFirst = true;
+    VLF("MSG: Mount, PEC index restored from park");
   }
 
   // disable PEC

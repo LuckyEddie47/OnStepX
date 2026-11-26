@@ -21,7 +21,7 @@ typedef struct ParkSettings {
   ParkPosition position;
   bool         saved;
   ParkState    state;
-  long         wormSensePositionSteps;
+  long         wormSensePositionSteps; // worm position from the PEC index at park, plus one; 0 if not known
 } ParkSettings;
 #pragma pack()
 
