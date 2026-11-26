@@ -186,6 +186,7 @@
         wormRotationStartTimeFs = lastFs;
         wormRotationElapsedSeconds = 0;
         accGuideAxis1 = 0.0L;
+        accBlendAxis1 = 0.0F;
       }
     } else
     // and once the PEC data is all stored, indicate that it's valid and start using it
@@ -218,36 +219,43 @@
 
     // falls in whenever the pecIndex changes, which is once a sidereal second
     if (bufferIndex != lastBufferIndex) {
+      // the slot for the second that has just ended
+      long endedIndex = lastBufferIndex;
       lastBufferIndex = bufferIndex;
 
       // assume no change to tracking rate
       rate = 0.0F;
 
       if (settings.state == PEC_RECORD) {
-        // get guide steps taken from the accumulator
+        // get guide steps taken from the accumulator, during the second that has just ended
         int i = round(accGuideAxis1);
 
         // stay within +/- one sidereal rate for corrections
         if (i < -stepsPerSiderealSecondI) i = -stepsPerSiderealSecondI;
         if (i >  stepsPerSiderealSecondI) i =  stepsPerSiderealSecondI;
 
-        // apply weighted average
-        if (!firstRecording) i = (i + (int)buffer[bufferIndex]*2)/3;
-
-        // restrict to valid range and store
+        // restrict to valid range
         if (i < -127) i = -127; else if (i >  127) i = 127;
 
-        // remove steps from the accumulator
+        // remove steps from the accumulator, before averaging so only the rounding and range limits carry over
         accGuideAxis1 -= i;
 
-        buffer[bufferIndex] = i;
+        // apply weighted average, carrying its rounding over to the next second so no steps are lost
+        if (!firstRecording) {
+          float blend = (i + buffer[endedIndex]*2)/3.0F + accBlendAxis1;
+          i = lroundf(blend);
+          if (i < -127) i = -127; else if (i >  127) i = 127;
+          accBlendAxis1 = blend - i;
+        }
+
+        buffer[endedIndex] = i;
       }
 
       if (settings.state == PEC_PLAY) {
-        // adjust one second before the value was recorded, an estimate of the latency between image acquisition and response
+        // play the next second's value, one second before it was recorded, an estimate of the latency between image acquisition and response
         // if sending values directly to OnStep from PECprep, etc. be sure to account for this
         // number of steps ahead or behind for this 1 second slot, up to +/-127
-        int j = bufferIndex - 1; if (j == -1) j += wormRotationSeconds;
+        int j = bufferIndex + 1; if (j == wormRotationSeconds) j = 0;
         int i = buffer[j];
         if (i >  stepsPerSiderealSecondI) i =  stepsPerSiderealSecondI;
         if (i < -stepsPerSiderealSecondI) i = -stepsPerSiderealSecondI;
