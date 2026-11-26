@@ -58,6 +58,7 @@ class Pec {
       uint8_t  senseHandle              = 0;
 
       bool     wormIndexState           = false;
+      bool     wormIndexStateValid      = false;  // wormIndexState was read on the last poll, PEC wasn't paused
       bool     wormIndexSenseThisSecond = false;
       long     wormRotationSteps        = 0;      // step position in worm rotation sequence
       long     wormSenseSteps           = 0;      // step position
