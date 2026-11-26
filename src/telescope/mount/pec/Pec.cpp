@@ -186,6 +186,7 @@
         wormRotationStartTimeFs = lastFs;
         wormRotationElapsedSeconds = 0;
         accGuideAxis1 = 0.0L;
+        accBlendAxis1 = 0.0F;
       }
     } else
     // and once the PEC data is all stored, indicate that it's valid and start using it
@@ -231,14 +232,19 @@
         if (i < -stepsPerSiderealSecondI) i = -stepsPerSiderealSecondI;
         if (i >  stepsPerSiderealSecondI) i =  stepsPerSiderealSecondI;
 
-        // apply weighted average
-        if (!firstRecording) i = (i + (int)buffer[bufferIndex]*2)/3;
-
-        // restrict to valid range and store
+        // restrict to valid range
         if (i < -127) i = -127; else if (i >  127) i = 127;
 
-        // remove steps from the accumulator
+        // remove steps from the accumulator, before averaging so only the rounding and range limits carry over
         accGuideAxis1 -= i;
+
+        // apply weighted average, carrying its rounding over to the next second so no steps are lost
+        if (!firstRecording) {
+          float blend = (i + buffer[bufferIndex]*2)/3.0F + accBlendAxis1;
+          i = lroundf(blend);
+          if (i < -127) i = -127; else if (i >  127) i = 127;
+          accBlendAxis1 = blend - i;
+        }
 
         buffer[bufferIndex] = i;
       }
