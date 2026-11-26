@@ -120,9 +120,11 @@
     #if (PEC_SENSE) == OFF
       wormSenseFirst = true;
     #else
-      static int lastState;
-      lastState = wormIndexState;
+      bool lastState = wormIndexState;
       wormIndexState = sense.isOn(senseHandle);
+
+      // after a pause there's no earlier reading, so a sensor that is already on isn't an edge
+      if (!wormIndexStateValid) { lastState = wormIndexState; wormIndexStateValid = true; }
 
       // digital or analog pec sense, with 60 second delay before redetect
       long dist;
@@ -130,7 +132,8 @@
 
       if (wormIndexSenseThisSecond && dist > stepsPerSiderealSecond*2.0) wormIndexSenseThisSecond = false;
 
-      if (dist > stepsPerSiderealSecond*60.0 && wormIndexState != lastState && wormIndexState == true) {
+      // the 60 second delay only applies once an index has been found, the first one is taken wherever it is
+      if ((!wormSenseFirst || dist > stepsPerSiderealSecond*60.0) && wormIndexState != lastState && wormIndexState == true) {
         VLF("MSG: Mount, PEC index detected");
         wormSenseSteps = axis1Steps;
         wormSenseFirst = true;
@@ -258,6 +261,11 @@
 
   // disable PEC
   void Pec::disable() {
+    #if (PEC_SENSE) != OFF
+      // the index sensor isn't read while paused
+      wormIndexStateValid = false;
+    #endif
+
     // give up recording if we stop tracking at the sidereal rate
     // don't zero the PEC offset, we don't want things moving and it really doesn't matter 
     if (settings.state == PEC_RECORD || settings.state == PEC_READY_RECORD) {
