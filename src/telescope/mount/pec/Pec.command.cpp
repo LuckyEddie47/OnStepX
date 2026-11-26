@@ -87,7 +87,7 @@ bool Pec::command(char *reply, char *command, char *parameter, bool *suppressFra
         if (conv_result) {
           if (i >= 0 && i < bufferSize) {
             if (parameter[0] == 0) {
-              i -= 1;
+              i += 1;
               if (i < 0) i += wormRotationSeconds;
               if (i >= wormRotationSeconds) i -= wormRotationSeconds;
               j = buffer[i];
