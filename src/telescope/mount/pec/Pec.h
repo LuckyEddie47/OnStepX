@@ -37,10 +37,11 @@ class Pec {
       void init();
       void poll();
 
-      // worm position to save at park: steps from the index plus one, or 0 if the index isn't known
-      long getParkWormPosition();
-      // puts the index back where it was at park, once unpark has reset the motor step count
-      void setParkWormPosition(long value);
+      // worm position, in steps from the index plus one, or 0 if the index isn't known
+      // for keeping the index across a reset of axis1's motor step count (park, unpark and home)
+      long getWormPosition();
+      // puts the index back so the worm is at this position, after the motor step count was reset
+      void setWormPosition(long value);
 
       PecSettings settings = { false, PEC_NONE, PEC_STEPS_PER_WORM_ROTATION };
     #endif

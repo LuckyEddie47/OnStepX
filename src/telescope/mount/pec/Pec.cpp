@@ -253,20 +253,20 @@
     }
   }
 
-  // worm position to save at park: steps from the index plus one, or 0 if the index isn't known
-  long Pec::getParkWormPosition() {
+  // worm position, in steps from the index plus one, or 0 if the index isn't known
+  long Pec::getWormPosition() {
     if (!wormSenseFirst || settings.wormRotationSteps <= 0) return 0;
     long steps = (axis1.getMotorPositionSteps() - wormSenseSteps) % settings.wormRotationSteps;
     if (steps < 0) steps += settings.wormRotationSteps;
     return steps + 1;
   }
 
-  // puts the index back where it was at park, once unpark has reset the motor step count
-  void Pec::setParkWormPosition(long value) {
+  // puts the index back so the worm is at this position, after the motor step count was reset
+  void Pec::setWormPosition(long value) {
     if (value <= 0 || value > settings.wormRotationSteps) return;
     wormSenseSteps = axis1.getMotorPositionSteps() - (value - 1);
     wormSenseFirst = true;
-    VLF("MSG: Mount, PEC index restored from park");
+    VLF("MSG: Mount, PEC index position restored");
   }
 
   // disable PEC

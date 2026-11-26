@@ -188,7 +188,7 @@ void Park::requestDone() {
 
     // save where the worm is relative to the PEC index, since unpark resets the motor step count
     #if AXIS1_PEC == ON
-      settings.wormSensePositionSteps = pec.getParkWormPosition();
+      settings.wormSensePositionSteps = pec.getWormPosition();
     #endif
 
     // save the axis state
@@ -279,7 +279,7 @@ CommandError Park::restore(bool withTrackingOn) {
 
     // the motor hasn't moved since park, so put the PEC index back where it was
     #if AXIS1_PEC == ON
-      pec.setParkWormPosition(settings.wormSensePositionSteps);
+      pec.setWormPosition(settings.wormSensePositionSteps);
     #endif
 
     VF("MSG: Mount, unpark axis1 motor position "); VL(axis1.getMotorPositionSteps());

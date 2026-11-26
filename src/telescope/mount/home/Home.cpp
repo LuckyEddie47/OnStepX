@@ -13,6 +13,7 @@
 #include "../goto/Goto.h"
 #include "../guide/Guide.h"
 #include "../limits/Limits.h"
+#include "../pec/Pec.h"
 #include "../startupAuthority/StartupAuthority.h"
 
 // init the home position (according to settings and mount type)
@@ -216,7 +217,14 @@ void Home::guideDone(bool success) {
     #if AXIS1_SECTOR_GEAR == ON 
       VLF("MSG: Mount, sector gear set origin");
       double h = axis1.getInstrumentCoordinate();
+      #if AXIS1_PEC == ON
+        long wormPosition = pec.getWormPosition();
+      #endif
       if (axis1.resetPosition(0.0L) != 0) { DLF("WRN: Home::guideDone(), failed to resetPosition Axis1"); exit; }
+      // the motor hasn't moved, so keep the PEC index where it was on the worm
+      #if AXIS1_PEC == ON
+        pec.setWormPosition(wormPosition);
+      #endif
       if (limits.setInstrumentCoordinate(1, h, true) != CE_NONE) { DLF("WRN: Home::guideDone(), failed to setInstrumentCoordinate Axis1"); exit; }
       mount.tracking(wasTracking);
     #endif
@@ -295,11 +303,18 @@ CommandError Home::reset(bool fullReset, bool authoritative, bool initializeCoor
     }
 
     if (resetCoordinates) {
+      #if AXIS1_PEC == ON
+        long wormPosition = pec.getWormPosition();
+      #endif
       if (axis1.resetPosition(0.0L) != 0) {
         DLF("WRN: Home::reset(), failed to resetPosition Axis1");
         if (fullReset) mount.enable(MOUNT_ENABLE_IN_STANDBY == ON);
         return CE_SLEW_IN_MOTION;
       }
+      // the motor hasn't moved, so keep the PEC index where it was on the worm
+      #if AXIS1_PEC == ON
+        pec.setWormPosition(wormPosition);
+      #endif
       if (axis2.resetPosition(0.0L) != 0) {
         DLF("WRN: Home::reset(), failed to resetPosition Axis2");
         if (fullReset) mount.enable(MOUNT_ENABLE_IN_STANDBY == ON);
