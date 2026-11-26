@@ -221,6 +221,7 @@
       lastBufferIndex = bufferIndex;
 
       // assume no change to tracking rate
+      float lastRate = rate;
       rate = 0.0F;
 
       if (settings.state == PEC_RECORD) {
@@ -253,6 +254,9 @@
         if (i < -stepsPerSiderealSecondI) i = -stepsPerSiderealSecondI;
         rate = i/stepsPerSiderealSecond;
       }
+
+      // apply the new rate now, not at the mount's next once a second update
+      if (rate != lastRate) mount.update();
     }
   }
 
