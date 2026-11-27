@@ -68,6 +68,10 @@ void Goto::init() {
       AXIS1_TARGET_TOLERANCE != 0.0F || AXIS2_TARGET_TOLERANCE != 0.0F || mount.hasAbsoluteEncoders()) encodersPresent = true;
 
   updateAccelerationRates();
+
+  #if GOTO_FEATURE == ON && GOTO_PLANNER == ON
+    gotoPlanner.init();
+  #endif
 }
 
 // goto to equatorial target position (Native coordinate system) using the defaut preferredPierSide
@@ -93,6 +97,10 @@ CommandError Goto::request(Coordinate coords, PierSideSelect pierSideSelect, boo
   CommandError e = setTarget(&coords, pierSideSelect);
   if (e == CE_SLEW_IN_SLEW) { abort(); return e; }
   if (e != CE_NONE) return e;
+
+  #if GOTO_PLANNER == ON
+    routeRefused = false;
+  #endif
 
   lastAlignTarget = target;
 
@@ -536,7 +544,7 @@ void Goto::poll() {
       stage = GG_WAYPOINT_HOME;
       destination = home.getPosition(CR_MOUNT);
       #if GOTO_PLANNER == ON
-        if (planSegment() != CE_NONE) { stage = GG_ABORT; goto skip; }
+        if (planSegment() != CE_NONE) { routeRefused = true; stage = GG_ABORT; goto skip; }
       #endif
       startAutoSlew();
     } else
@@ -550,7 +558,7 @@ void Goto::poll() {
       stage = GG_NEAR_DESTINATION_START;
       destination = target;
       #if GOTO_PLANNER == ON
-        if (planSegment() != CE_NONE) { stage = GG_ABORT; goto skip; }
+        if (planSegment() != CE_NONE) { routeRefused = true; stage = GG_ABORT; goto skip; }
       #endif
       startAutoSlew();
     } else

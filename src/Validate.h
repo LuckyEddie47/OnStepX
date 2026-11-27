@@ -527,6 +527,18 @@
   #error "Configuration (Config.h): Setting GOTO_SYNCHRONOUS ON requires ODRIVE_SLEW_DIRECT and MKS_SLEW_DIRECT OFF."
 #endif
 
+#if GOTO_PLANNER_GRID != OFF && GOTO_PLANNER_GRID != ON
+  #error "Configuration (Config.h): Setting GOTO_PLANNER_GRID unknown, use OFF or ON."
+#endif
+
+#if GOTO_PLANNER == ON && GOTO_PLANNER_GRID == ON && GOTO_SYNCHRONOUS != ON
+  #error "Configuration (Config.h): Setting GOTO_PLANNER ON requires GOTO_SYNCHRONOUS ON, the planner checks each leg as a straight line."
+#endif
+
+#if GOTO_PLANNER_MAX_WAYPOINTS < 1 || GOTO_PLANNER_MAX_WAYPOINTS > 16
+  #error "Configuration (Config.h): Setting GOTO_PLANNER_MAX_WAYPOINTS invalid, use 1 to 16."
+#endif
+
 // PIER SIDE BEHAVIOUR
 #ifdef MFLIP_SKIP_HOME
   #if MFLIP_SKIP_HOME != ON && MFLIP_SKIP_HOME != OFF

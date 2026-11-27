@@ -211,6 +211,9 @@
 #define GOTO_OFFSET                  0.25 //   0.25, Offset in deg's for goto target unidirectional approach, 0.0 disables    Adjust
 #define GOTO_OFFSET_ALIGN             OFF //    OFF, ON skips final phase of goto for align stars so user tends to approach   Option
                                           //         from the correct direction when centering.
+#define GOTO_SYNCHRONOUS              OFF //    OFF, ON both axes start and stop together, each goto leg a straight line.     Option
+#define GOTO_PLANNER                  OFF //    OFF, ON plans gotos around the overhead limit, needs GOTO_SYNCHRONOUS ON.     Option
+#define GOTO_PLANNER_CELL            20.0 //   20.0, n, (degrees.) 5 to 30. Grid cell size gotos are planned through.         Infreq
 
 // PIER SIDE BEHAVIOUR --------------------------------------- see https://onstep.groups.io/g/main/wiki/Configuration_Mount#PIERSIDE
 #define MFLIP_HOME_DEFAULT          VISIT //  VISIT, OFF, VISIT, PAUSE Select meridian flip home waypoint behavior.           Option

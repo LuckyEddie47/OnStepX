@@ -117,6 +117,11 @@ class Goto {
     // flag to indicate that encoders are present
     bool encodersPresent = false;
 
+    #if GOTO_FEATURE == ON && GOTO_PLANNER == ON
+    // true if a goto stopped part way because the planning engine refused a later segment, until the next goto
+    inline bool isRouteRefused() { return routeRefused; }
+    #endif
+
   private:
 
     #if GOTO_FEATURE == ON
@@ -174,6 +179,7 @@ class Goto {
     // the stage and destination a planned route ends at
     GotoStage  routeStage           = GG_NONE;
     Coordinate routeDestination;
+    bool       routeRefused         = false;
     #endif
 
     GotoSettings settings = {MFLIP_AUTOMATIC_DEFAULT == ON, meridianFlipHomeModeDefault, (PierSideSelect)PIER_SIDE_PREFERRED_DEFAULT, 1000001.0F};

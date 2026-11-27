@@ -10,6 +10,9 @@
 
 class GotoPlanner {
   public:
+    // prepare the engine at startup, after the site, limits and axes
+    virtual void init() {}
+
     // plan the goto segment from the current position to its destination (Mount coordinates)
     // from holds the axis frame and a pier side only, near the pole compare positions as instrument coordinates
     // not by pier side, the axis1 target of to is its instrument coordinate plus to->a1Correction

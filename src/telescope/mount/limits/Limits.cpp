@@ -303,6 +303,10 @@ uint8_t Limits::errorCode() {
   if (initError.nv || initError.value) return (uint8_t)ERR_NV_INIT;
   if (initError.tls) return (uint8_t)ERR_SITE_INIT;
   if (initError.weather) return (uint8_t)ERR_WEATHER_INIT;
+  #if GOTO_FEATURE == ON && GOTO_PLANNER == ON
+    // a goto stopped part way because a later segment had no route
+    if (goTo.isRouteRefused()) return (uint8_t)ERR_UNSPECIFIED;
+  #endif
   return ERR_NONE;
 }
 

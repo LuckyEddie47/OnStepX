@@ -876,6 +876,20 @@
 #ifndef GOTO_SYNCHRONOUS
 #define GOTO_SYNCHRONOUS              OFF                         // ON scales the axis rates so both axes move on a straight line
 #endif                                                            // in axis coordinates, starting and stopping together
+#ifndef GOTO_PLANNER_GRID
+#define GOTO_PLANNER_GRID             ON                          // ON uses the grid planning engine, OFF for an engine supplied elsewhere
+#endif
+#ifndef GOTO_PLANNER_MARGIN
+#define GOTO_PLANNER_MARGIN           2.0                         // degrees, a route keeps at least this clear of each zone and limit
+#endif
+#ifndef GOTO_PLANNER_CELL
+#define GOTO_PLANNER_CELL             20.0                        // degrees, size of the grid cells routes are found through
+#endif
+#ifndef GOTO_PLANNER_MAX_WAYPOINTS
+#define GOTO_PLANNER_MAX_WAYPOINTS    4                           // most waypoints in a planned route
+#endif
+                                                                  // GOTO_PLANNER_BOXES {{a1 min, a1 max, a2 min, a2 max}, ...}
+                                                                  // optional zones to keep clear, instrument axis degrees
 
 // meridian flip, pier side
 #ifndef MFLIP_HOME_DEFAULT
