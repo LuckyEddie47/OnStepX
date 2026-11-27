@@ -14,6 +14,7 @@
 #include "../guide/Guide.h"
 #include "../home/Home.h"
 #include "../limits/Limits.h"
+#include "../pec/Pec.h"
 #include "../startupAuthority/StartupAuthority.h"
 #include "../../../lib/sense/Sense.h"
 
@@ -109,13 +110,6 @@ CommandError Park::request() {
     mount.enable(true);
     goTo.firstGoto = false;
 
-    #if AXIS1_PEC == ON
-      // turn off PEC while we park
-      pecDisable();
-      pec.state = PEC_NONE;
-      settings.wormSensePositionSteps = wormSenseSteps;
-    #endif
-
     // record our park status
     ParkState priorParkState = state;
     
@@ -192,6 +186,11 @@ void Park::requestDone() {
       VF("MSG: Mount, park axis2 motor position "); VL(axis2.getMotorPositionSteps());
     #endif
 
+    // save where the worm is relative to the PEC index, since unpark resets the motor step count
+    #if AXIS1_PEC == ON
+      settings.wormSensePositionSteps = pec.getWormPosition();
+    #endif
+
     // save the axis state
     state = PS_PARKED;
     settings.state = state;
@@ -242,10 +241,6 @@ CommandError Park::restore(bool withTrackingOn) {
     VLF("MSG: Mount, recovering unpark position");
   }
 
-  #if AXIS1_PEC == ON
-    wormSenseSteps = settings.wormSensePositionSteps;
-  #endif
-
   if (!mount.hasAbsoluteEncoders()) {
 
     // reset the mount, zero backlash
@@ -281,6 +276,11 @@ CommandError Park::restore(bool withTrackingOn) {
     axis1.setInstrumentCoordinatePark(a1);
     axis2.setInstrumentCoordinatePark(a2);
     mount.captureNominalIndexPositions();
+
+    // the motor hasn't moved since park, so put the PEC index back where it was
+    #if AXIS1_PEC == ON
+      pec.setWormPosition(settings.wormSensePositionSteps);
+    #endif
 
     VF("MSG: Mount, unpark axis1 motor position "); VL(axis1.getMotorPositionSteps());
     VF("MSG: Mount, unpark axis2 motor position "); VL(axis2.getMotorPositionSteps());
